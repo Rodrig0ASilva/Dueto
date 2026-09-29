@@ -41,7 +41,7 @@ Para sincronizar os seus dados entre aparelhos e garantir a segurança com backu
 2. Apague todo o código que estiver na tela e cole este bloco abaixo:
 
 ```javascript
-const FILE_NAME = "tvde_dados_sync.json"; // Nome do ficheiro da app TVDE
+const FILE_NAME = "dueto_dados_sync.json"; // Nome do ficheiro da app DUETO
 const FOLDER_NAME = "cofre"; // Pasta principal
 const BACKUP_FOLDER_NAME = "cofre/cofre_backups"; // Caminho para a subpasta de backups
 
@@ -127,7 +127,7 @@ function fazerBackupDiario() {
     
     // Pega a data de hoje no formato YYYY-MM-DD
     let dataHoje = Utilities.formatDate(new Date(), Session.getScriptTimeZone(), "yyyy-MM-dd");
-    let nomeBackup = "tvde_backup_" + dataHoje + ".json"; 
+    let nomeBackup = "dueto_backup_" + dataHoje + ".json"; 
 
     // Vai buscar (ou criar) a pasta de destino usando o caminho completo
     const backupFolder = getOrCreateFolder(BACKUP_FOLDER_NAME);
