@@ -1599,14 +1599,6 @@ body.dark .loan-progress-bg { background: rgba(255,255,255,0.14); }
       </div>
     </div>
 
-    <!-- NO INCOME STATE -->
-    <div id="noIncomeState" class="no-income-state" style="display:none;">
-      <div class="no-income-emoji">💸</div>
-      <div class="section-title no-income-title">Mês não iniciado</div>
-      <div class="section-sub no-income-sub">Você ainda não inseriu a renda ou o dinheiro que vai usar neste mês.</div>
-      <button class="btn btn-primary" onclick="openAddIncomeSheet()">+ Inserir Dinheiro do Mês</button>
-    </div>
-
     <!-- MAIN MONTH CONTENT -->
     <div id="mainMonthContent">
       <div class="section-head"><div class="section-title">O que entrou</div></div>
@@ -1962,7 +1954,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.0.1';  // last updated: 2026-07-14 — added: número da versão sempre visível na tela de carregamento
+const APP_VERSION = '4.1.1';  // last updated: 2026-07-14 — fix: opção "Neste mês" removida do início de pagamento de empréstimo — devolução sempre começa no próximo mês ou depois
 
 async function checkForUpdateOnBoot(){
   try{
@@ -3774,8 +3766,8 @@ function openMoveSheet(type){
   const v = vaults.find(x=>x.id===currentVaultId); if(!v) return;
   if(type==='emprestimo'){ openLoanSheet(); return; }
   let title, sub, btnLabel, btnClass='';
-  if(type==='deposito'){ title='Guardar dinheiro'; sub=`Adicionar valor ao cofre "${v.name}".`; btnLabel='Guardar'; }
-  if(type==='retirada'){ title='Retirar dinheiro'; sub=`Tirar valor do cofre "${v.name}" — sem precisar devolver.`; btnLabel='Retirar'; btnClass='danger'; }
+  if(type==='deposito'){ title='Guardar dinheiro'; sub=`Adicionar valor ao cofre "${escapeHtml(v.name)}".`; btnLabel='Guardar'; }
+  if(type==='retirada'){ title='Retirar dinheiro'; sub=`Tirar valor do cofre "${escapeHtml(v.name)}" — sem precisar devolver.`; btnLabel='Retirar'; btnClass='danger'; }
   const sourceField = type === 'deposito' ? `
     <div class="field"><label>De onde vem esse dinheiro?</label>
       <select id="moveSource">
@@ -3953,7 +3945,7 @@ function openLoanSheet(){
     : `<input type="hidden" id="loanWho" value="${scope}" /><div class="section-sub" style="padding:10px 2px;">${scope==='a'?nameA:nameB} (perfil atual)</div>`;
   openSheet(`
     ${sheetHeader(`Pegar emprestado`)}
-    <div class="sheet-sub">Tire um valor do cofre "${v.name}" combinando em quantas vezes vai devolver.</div>
+    <div class="sheet-sub">Tire um valor do cofre "${escapeHtml(v.name)}" combinando em quantas vezes vai devolver.</div>
     <div class="field"><label>Quem está pegando?</label>${whoField}</div>
     <div class="field"><label>Valor a pegar</label><div class="field-money"><input type="number" id="loanAmount" placeholder="0,00" inputmode="decimal" oninput="updateLoanPreview()" /></div></div>
     <div class="field">
@@ -3965,8 +3957,7 @@ function openLoanSheet(){
     <div class="field">
       <label>Início do Pagamento</label>
       <select id="loanStartOffset">
-        <option value="0">Neste mês</option>
-        <option value="1">Daqui a 1 mês (Carência)</option>
+        <option value="1">Próximo mês</option>
         <option value="2">Daqui a 2 meses</option>
       </select>
     </div>
@@ -4306,7 +4297,6 @@ function renderMonth(){
   const scope = currentScope();
 
   if(scope !== 'casa'){
-    document.getElementById('noIncomeState').style.display = 'none';
     document.getElementById('mainMonthContent').style.display = 'block';
     document.getElementById('incomeSection').innerHTML = `
       <div class="section-sub" style="padding:6px 2px 14px; line-height:1.5;">
@@ -4343,17 +4333,20 @@ function renderMonth(){
   });
 
   if(totalIncome === 0){
-    document.getElementById('noIncomeState').style.display = 'block';
-    document.getElementById('mainMonthContent').style.display = 'none';
+    incomeHtml = `
+      <div class="no-income-state" style="padding:24px 10px;">
+        <div class="no-income-emoji" style="font-size:32px;">💸</div>
+        <div class="section-sub no-income-sub" style="margin:6px 0 14px;">Nenhuma renda cadastrada ainda para este mês.</div>
+      </div>
+      <div class="add-dashed-btn" style="border-style:solid;" onclick="openAddIncomeSheet()">＋ Inserir dinheiro do mês</div>`;
   } else {
-    document.getElementById('noIncomeState').style.display = 'none';
-    document.getElementById('mainMonthContent').style.display = 'block';
     incomeHtml += `<div class="add-dashed-btn" style="border-style:solid;margin-top: 20px;" onclick="openAddIncomeSheet()">＋ Adicionar mais renda</div>`;
-    document.getElementById('incomeSection').innerHTML = incomeHtml;
-    renderSourceBalances(entry);
-    renderBills(entry);
-    renderMonthSummary(entry, totalIncome);
   }
+  document.getElementById('mainMonthContent').style.display = 'block';
+  document.getElementById('incomeSection').innerHTML = incomeHtml;
+  renderSourceBalances(entry);
+  renderBills(entry);
+  renderMonthSummary(entry, totalIncome);
 }
 
 function openAddIncomeSheet(){
@@ -4647,10 +4640,10 @@ function renderBills(entry){
             : Object.entries(paidSplit).filter(([k,v])=>v>0).map(([k,v])=>{ const src=MONEY_SOURCES.find(s=>s.key===k); return `${src.emoji} ${fmt(v)}`; }).join(' · '))
       : isHidden ? 'oculta neste mês' : (b.payFromVaultId ? 'toque para confirmar a devolução' : 'toque no valor para ajustar este mês');
     const targetVault = b.targetVaultId ? vaults.find(v=>v.id === b.targetVaultId) : null;
-    const vaultBadge  = targetVault ? `<span class="bill-tag" style="background:var(--vault-light); color:#fff; font-size:9.5px;">🏦 p/ ${targetVault.name}</span>` : '';
+    const vaultBadge  = targetVault ? `<span class="bill-tag" style="background:var(--vault-light); color:#fff; font-size:9.5px;">🏦 p/ ${escapeHtml(targetVault.name)}</span>` : '';
     const fromVault   = b.payFromVaultId ? vaults.find(v=>v.id === b.payFromVaultId) : null;
     const toVault     = b.payToVaultId   ? vaults.find(v=>v.id === b.payToVaultId)   : null;
-    const loanBadge   = (fromVault && toVault) ? `<span class="bill-tag" style="background:var(--brass); color:#fff; font-size:9.5px;">🏦 ${fromVault.name} → ${toVault.name}</span>` : '';
+    const loanBadge   = (fromVault && toVault) ? `<span class="bill-tag" style="background:var(--brass); color:#fff; font-size:9.5px;">🏦 ${escapeHtml(fromVault.name)} → ${escapeHtml(toVault.name)}</span>` : '';
     const createdKeyForBadge = b.createdMonthKey || currentMonthKey;
     const durationBadge = b.endMonthKey
       ? (b.endMonthKey === createdKeyForBadge
@@ -4922,7 +4915,7 @@ function openNewBillSheet(){
       <label>Destino do dinheiro (opcional)</label>
       <select id="billTargetVault">
         <option value="">Nenhum (Despesa comum externa)</option>
-        ${visibleVaults().map(v => `<option value="${v.id}">Cofre: ${v.name}</option>`).join('')}
+        ${visibleVaults().map(v => `<option value="${v.id}">Cofre: ${escapeHtml(v.name)}</option>`).join('')}
         ${currentScope()==='casa' ? `
         <option value="person:a">👤 Enviar para ${escapeHtml(names.a||'Pessoa A')} (pessoal)</option>
         <option value="person:b">👤 Enviar para ${escapeHtml(names.b||'Pessoa B')} (pessoal)</option>` : ''}
