@@ -1700,6 +1700,10 @@ html.soft-change .glass-pill {
 #glassRange::-moz-range-progress { background: transparent; }
 body.dark #glassRange::-webkit-slider-runnable-track { background: rgba(255,255,255,0.3); }
 body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
+/* Arrastar com o dedo: nada de seleção de texto, menu ou callout ao segurar */
+.tabbar-inner, .seg, .tabbar-inner *, .seg * {
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
+}
 </style>
 </head>
 <body>
@@ -2182,7 +2186,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.3.3';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.3.5';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 async function checkForUpdateOnBoot(){
   try{
@@ -2856,12 +2860,15 @@ function glassEnd(e, cancelled){
   try{ d.c.releasePointerCapture(d.id); }catch(_){}
   glassClickBlock = true;
   if(cancelled){
-    glassPlace(d.c, d.opts.find(o => o.classList.contains('active')), true);
+    // O navegador tomou o gesto no meio (ex: iPhone ao segurar): solta onde o dedo estava,
+    // em vez de voltar para a aba antiga.
+    glassRelease(d.c, d, { x: d.lx, y: d.ly });
     return;
   }
   glassRelease(d.c, d, { x: e.clientX, y: e.clientY });
 }
 document.addEventListener('pointerup', e => glassEnd(e, false));
+document.addEventListener('contextmenu', e => { if(e.target.closest && e.target.closest('.seg, .tabbar-inner')) e.preventDefault(); }, true);
 document.addEventListener('pointercancel', e => glassEnd(e, true));
 document.addEventListener('click', e => {
   if(glassClickBlock && e.isTrusted){ glassClickBlock = false; e.stopPropagation(); e.preventDefault(); }
@@ -3090,7 +3097,7 @@ function whoLabel(w){ return w === 'a' ? (names.a||'Pessoa A') : (names.b||'Pess
 async function pickProfile(scope){
   localSettings.currentProfile = scope;
   await persistLocalSettings();
-  renderProfileSwitcher();
+  softChange(() => renderProfileSwitcher());
   applyTabVisibility();
   renderAll();
   renderMonth();
@@ -3119,8 +3126,19 @@ function renderProfileSwitcher(){
     pickProfile('casa');
     return;
   }
-  const html = `<div class="seg" style="margin:0 0 14px;">${options.map(o=>`<div class="seg-opt ${o.key===scope?'active':''}" onclick="pickProfile('${o.key}')">${o.label}</div>`).join('')}</div>`;
-  slots.forEach(el => el.innerHTML = html);
+  // Só recria o seletor quando as opções mudaram. Caso contrário, atualiza apenas a classe
+  // "active": o elemento continua o mesmo, então a gota e as cores animam em vez de pular.
+  const sig = options.map(o => o.key + '|' + o.label).join(',');
+  const html = `<div class="seg" style="margin:0 0 14px;">${options.map(o=>`<div class="seg-opt ${o.key===scope?'active':''}" data-key="${o.key}" onclick="pickProfile('${o.key}')">${o.label}</div>`).join('')}</div>`;
+  slots.forEach(el => {
+    const seg = el.querySelector('.seg');
+    if(!seg || el.dataset.sig !== sig){
+      el.dataset.sig = sig;
+      el.innerHTML = html;
+    } else {
+      seg.querySelectorAll('.seg-opt').forEach(o => o.classList.toggle('active', o.dataset.key === scope));
+    }
+  });
 }
 
 function renderAll(){
