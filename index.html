@@ -1954,7 +1954,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.1.1';  // last updated: 2026-07-14 — fix: opção "Neste mês" removida do início de pagamento de empréstimo — devolução sempre começa no próximo mês ou depois
+const APP_VERSION = '4.2.0';  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 async function checkForUpdateOnBoot(){
   try{
@@ -2143,6 +2143,22 @@ const fmt = (n) => {
 };
 function round2(n){ return Math.round((n + Number.EPSILON) * 100) / 100; }
 
+// Formato de armazenamento: vaults/txns/loans/bills são salvos como
+// dicionário por ID em vez de array. O app continua operando com arrays
+// internamente — a conversão acontece só ao salvar e ao carregar. Lê tanto o
+// formato novo (objeto) quanto o antigo (array), então dados antigos abrem normalmente.
+const SCHEMA_VERSION = 2;
+function arrToDict(arr){
+  const dict = {};
+  (Array.isArray(arr) ? arr : []).forEach(item => { if(item && item.id) dict[item.id] = item; });
+  return dict;
+}
+function dictToArr(data){
+  if(Array.isArray(data)) return data;
+  if(data && typeof data === 'object') return Object.values(data);
+  return [];
+}
+
 function ensureVaultSources(v){
   if(!v.sourceBalance) v.sourceBalance = { fisico:0, vale:0, conta:0 };
   return v.sourceBalance;
@@ -2197,20 +2213,20 @@ async function loadLocalOnlySettings(){
 }
 
 async function loadFromLocalStorage(){
-  try{ const v  = await window.storage.get('vaults');    vaults    = v  ? JSON.parse(v.value)  : []; }catch(e){}
-  try{ const t  = await window.storage.get('txns');      txns      = t  ? JSON.parse(t.value)  : []; }catch(e){}
-  try{ const l  = await window.storage.get('loans');     loans     = l  ? JSON.parse(l.value)  : []; }catch(e){}
+  try{ const v  = await window.storage.get('vaults');    vaults    = v  ? dictToArr(JSON.parse(v.value))  : []; }catch(e){}
+  try{ const t  = await window.storage.get('txns');      txns      = t  ? dictToArr(JSON.parse(t.value))  : []; }catch(e){}
+  try{ const l  = await window.storage.get('loans');     loans     = l  ? dictToArr(JSON.parse(l.value))  : []; }catch(e){}
   try{ const n  = await window.storage.get('names');     names     = n  ? JSON.parse(n.value)  : { a:'Rodrigo', b:'Jacqueline' }; }catch(e){}
-  try{ const b  = await window.storage.get('bills');     bills     = b  ? JSON.parse(b.value)  : []; }catch(e){}
+  try{ const b  = await window.storage.get('bills');     bills     = b  ? dictToArr(JSON.parse(b.value))  : []; }catch(e){}
   try{ const md = await window.storage.get('monthData'); monthData = md ? JSON.parse(md.value) : {}; }catch(e){}
   try{ const st = await window.storage.get('appSettings'); appSettings = st ? { extraProfiles:[], ...JSON.parse(st.value) } : { extraProfiles:[] }; }catch(e){ appSettings = { extraProfiles:[] }; }
 }
 
 function applyCloudData(data){
-  vaults    = Array.isArray(data.vaults)    ? data.vaults    : [];
-  txns      = Array.isArray(data.txns)      ? data.txns      : [];
-  loans     = Array.isArray(data.loans)     ? data.loans     : [];
-  bills     = Array.isArray(data.bills)     ? data.bills     : [];
+  vaults    = dictToArr(data.vaults);
+  txns      = dictToArr(data.txns);
+  loans     = dictToArr(data.loans);
+  bills     = dictToArr(data.bills);
   monthData = (data.monthData && typeof data.monthData === 'object') ? data.monthData : {};
   names     = (data.names && typeof data.names === 'object') ? data.names : { a:'', b:'' };
   const cloudApp = (data.appSettings && typeof data.appSettings === 'object') ? data.appSettings : {};
@@ -2218,10 +2234,10 @@ function applyCloudData(data){
 }
 
 async function persistLocalOnlySilently(){
-  try{ await window.storage.set('vaults',    JSON.stringify(vaults));    }catch(e){}
-  try{ await window.storage.set('txns',      JSON.stringify(txns));      }catch(e){}
-  try{ await window.storage.set('loans',     JSON.stringify(loans));     }catch(e){}
-  try{ await window.storage.set('bills',     JSON.stringify(bills));     }catch(e){}
+  try{ await window.storage.set('vaults',    JSON.stringify(arrToDict(vaults)));    }catch(e){}
+  try{ await window.storage.set('txns',      JSON.stringify(arrToDict(txns)));      }catch(e){}
+  try{ await window.storage.set('loans',     JSON.stringify(arrToDict(loans)));     }catch(e){}
+  try{ await window.storage.set('bills',     JSON.stringify(arrToDict(bills)));     }catch(e){}
   try{ await window.storage.set('monthData', JSON.stringify(monthData));}catch(e){}
   try{ await window.storage.set('names',     JSON.stringify(names));     }catch(e){}
   try{ await window.storage.set('appSettings', JSON.stringify(appSettings)); }catch(e){}
@@ -2359,11 +2375,11 @@ async function loadAll(manual = false){
   checkForUpdateOnBoot(); // não precisa esperar — roda em paralelo, sem travar a abertura do app
 }
 
-async function persistVaults()    { await safeSet('vaults',    vaults);    }
-async function persistTxns()      { await safeSet('txns',      txns);      }
-async function persistLoans()     { await safeSet('loans',     loans);     }
+async function persistVaults()    { await safeSet('vaults',    arrToDict(vaults)); }
+async function persistTxns()      { await safeSet('txns',      arrToDict(txns));   }
+async function persistLoans()     { await safeSet('loans',     arrToDict(loans));  }
 async function persistNames()     { await safeSet('names',     names);     }
-async function persistBills()     { await safeSet('bills',     bills);     }
+async function persistBills()     { await safeSet('bills',     arrToDict(bills));  }
 async function persistMonthData() { await safeSet('monthData', monthData); }
 async function persistAppSettings() { await safeSet('appSettings', appSettings); }
 async function persistLocalSettings() {
@@ -2387,7 +2403,11 @@ async function safeSet(key, value){
 
 function buildCloudPayload(){
   const sharedAppSettings = { extraProfiles: appSettings.extraProfiles };
-  return { vaults, txns, loans, bills, monthData, names, appSettings: sharedAppSettings };
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    vaults: arrToDict(vaults), txns: arrToDict(txns), loans: arrToDict(loans), bills: arrToDict(bills),
+    monthData, names, appSettings: sharedAppSettings
+  };
 }
 
 const PENDING_PUSH_KEY = 'pendingCloudPush';
