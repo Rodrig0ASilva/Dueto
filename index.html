@@ -2186,7 +2186,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.3.5';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.3.6';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 async function checkForUpdateOnBoot(){
   try{
@@ -2718,7 +2718,8 @@ function setSyncStatus(state){
   });
 }
 
-const TABS = ['tabHome','tabMonth','tabFeira','tabLoans','tabStats','tabSettings'];
+// Mesma ordem em que as abas aparecem na barra (o arrasto e a direção do deslize dependem disso)
+const TABS = ['tabMonth','tabFeira','tabHome','tabLoans','tabStats','tabSettings'];
 
 function activateTab(id){
   TABS.forEach(t => document.getElementById(t).classList.toggle('active', t === id));
@@ -2883,7 +2884,7 @@ const glassObserver = new MutationObserver(muts => {
 glassObserver.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
 
 // Deslizar na horizontal sobre o conteúdo: aba seguinte ou anterior.
-const SCREEN_ORDER = ['screen-home','screen-month','screen-feira','screen-loans','screen-stats','screen-settings'];
+const SCREEN_ORDER = ['screen-month','screen-feira','screen-home','screen-loans','screen-stats','screen-settings'];
 function showScreen(id){
   const prev = document.querySelector('.screen.active');
   const from = prev ? SCREEN_ORDER.indexOf(prev.id) : -1;
