@@ -1530,8 +1530,10 @@ body.glass .tab.active {
 }
 @keyframes slideFromRight { from { transform: translateX(28px); } to { transform: translateX(0); } }
 @keyframes slideFromLeft { from { transform: translateX(-28px); } to { transform: translateX(0); } }
-.screen.slide-r { animation: slideFromRight 0.3s cubic-bezier(.2,.8,.2,1); }
-.screen.slide-l { animation: slideFromLeft 0.3s cubic-bezier(.2,.8,.2,1); }
+.screen.slide-r { animation: slideFromRight 0.42s cubic-bezier(.34,1.56,.64,1); }
+.screen.slide-l { animation: slideFromLeft 0.42s cubic-bezier(.34,1.56,.64,1); }
+.troca-r { animation: slideFromRight 0.42s cubic-bezier(.34,1.56,.64,1); }
+.troca-l { animation: slideFromLeft 0.42s cubic-bezier(.34,1.56,.64,1); }
 body.glass.dark .tab.active { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.18); }
 body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact {
   background: rgba(255,255,255,0.5);
@@ -1704,6 +1706,70 @@ body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
 .tabbar-inner, .seg, .tabbar-inner *, .seg * {
   -webkit-user-select: none; user-select: none; -webkit-touch-callout: none;
 }
+/* ── Barra de abas com cor dentro da gota (Corrida+ 0.167) ── */
+.tabbar::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 240px; background: var(--cream); pointer-events: none; }
+body.glass .tabbar::after { background: transparent; }
+body.glass .tabbar { background: none; }
+body.glass .tabbar-inner,
+body.glass.dark .tabbar-inner {
+  background: rgba(255,255,255,0.28);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid rgba(255,255,255,0.55);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.6), 0 10px 30px rgba(20,16,12,0.16);
+}
+body.glass.dark .tabbar-inner {
+  background: rgba(40,40,52,0.38);
+  border-color: rgba(255,255,255,0.14);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.12), 0 10px 30px rgba(0,0,0,0.45);
+}
+body.glass .tabbar-inner { position: relative; touch-action: none; }
+body.glass .tabbar-inner { background: rgba(255,255,255, min(0.97, calc(0.28 * var(--gl-k)))); backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); -webkit-backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); }
+body.glass.dark .tabbar-inner { background: rgba(40,40,52, min(0.97, calc(0.38 * var(--gl-k)))); }
+.tabbar-inner > .tab { color: transparent !important; }
+.tabbar-inner .tab.active { background: transparent; }
+.tabbar-inner .tab.active svg { transform: none; }
+.tab-layer {
+  position: absolute; inset: 0; pointer-events: none;
+  display: flex; flex-direction: inherit; justify-content: inherit; align-items: inherit; gap: inherit; padding: inherit;
+}
+.tab-base { z-index: 2; transition: clip-path 0.38s cubic-bezier(.34,1.56,.64,1); }
+.tab-ov {
+  z-index: 3; color: var(--vault);
+  clip-path: inset(0 100% 0 0 round 12px);
+  transition: clip-path 0.38s cubic-bezier(.34,1.56,.64,1);
+}
+body.dark .tab-ov { color: var(--vault-text, var(--vault-light)); }
+.tab-ov .tab { color: inherit !important; background: none; }
+.tab-layer .tab svg { transition: none; }
+body.glass .tabbar-inner > .glass-pill { border-radius: var(--tab-inner); }
+html.soft-change .glass-pill {
+  transition: left 0.38s cubic-bezier(.34,1.56,.64,1), top 0.38s cubic-bezier(.34,1.56,.64,1),
+              width 0.38s cubic-bezier(.34,1.56,.64,1), height 0.38s cubic-bezier(.34,1.56,.64,1),
+              transform 0.42s cubic-bezier(.34,1.56,.64,1), opacity 0.2s ease,
+              background-color 0.5s ease, border-color 0.5s ease, box-shadow 0.5s ease !important;
+}
+body.dark .brand-name, body.dark .screen-title, body.dark .tabbar-inner::before { color: var(--vault-text, var(--vault-light)); }
+/* ── Vidro dos cartões e folhas e barras finas (Corrida+ 0.167) ── */
+body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact { background: rgba(255,255,255,0.5); backdrop-filter: blur(18px) saturate(160%); -webkit-backdrop-filter: blur(18px) saturate(160%); border-color: rgba(255,255,255,0.6); box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 6px 20px rgba(20,16,12,0.08); }
+body.glass.dark .stat-card, body.glass.dark .chart-box, body.glass.dark .profile-card, body.glass.dark .income-row-compact { background: rgba(30,30,40,0.5); border-color: rgba(255,255,255,0.1); }
+body.glass .sheet { background: rgba(246,239,226,0.82); backdrop-filter: blur(30px) saturate(170%); -webkit-backdrop-filter: blur(30px) saturate(170%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 -8px 40px rgba(20,16,12,0.18); }
+body.glass.dark .sheet { background: rgba(26,26,33,0.82); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 -8px 40px rgba(0,0,0,0.5); }
+body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact { background: rgba(255,255,255, min(0.97, calc(0.5 * var(--gl-k)))); backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); -webkit-backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); }
+body.glass.dark .stat-card, body.glass.dark .chart-box, body.glass.dark .profile-card, body.glass.dark .income-row-compact { background: rgba(30,30,40, min(0.97, calc(0.5 * var(--gl-k)))); }
+body.glass .sheet { background: rgba(246,239,226, min(0.98, calc(0.82 * var(--gl-k)))); backdrop-filter: blur(calc(30px * var(--gl-b))) saturate(170%); -webkit-backdrop-filter: blur(calc(30px * var(--gl-b))) saturate(170%); }
+body.glass.dark .sheet { background: rgba(26,26,33, min(0.98, calc(0.82 * var(--gl-k)))); }
+body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact, body.glass .loans-box { background: rgba(255,255,255, min(0.97, calc(0.78 * var(--gl-k)))); border-color: rgba(255,255,255,0.75); }
+body.glass.dark .stat-card, body.glass.dark .chart-box, body.glass.dark .profile-card, body.glass.dark .income-row-compact, body.glass.dark .loans-box { background: rgba(30,30,40, min(0.97, calc(0.8 * var(--gl-k)))); border-color: rgba(255,255,255,0.2); }
+#app::-webkit-scrollbar { width: 8px; background: transparent; }
+#app::-webkit-scrollbar-track { background: transparent; }
+#app::-webkit-scrollbar-thumb { background: rgba(42,36,32,0.22); border-radius: 8px; border: 2px solid transparent; background-clip: padding-box; }
+body.dark #app::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.22); background-clip: padding-box; }
+body.glass .sheet { background: rgba(246,239,226, min(0.97, calc(0.96 * var(--gl-k)))); }
+body.glass.dark .sheet { background: rgba(26,26,33, min(0.97, calc(0.96 * var(--gl-k)))); }
+/* ── Balões com vidro (Corrida+ 0.167): todos os cartões translúcidos no efeito transparente ── */
+body.glass .source-balance-chip, body.glass .loans-box, body.glass .add-dashed-btn, body.glass .add-profile-btn, body.glass .month-nav-btn, body.glass .installment-preview, body.glass .split-row, body.glass .action-btn, body.glass .source-breakdown-item, body.glass .menu-item, body.glass .bill-amount-input, body.glass .profile-card { background: rgba(255,255,255, calc(0.5 * var(--gl-k))); -webkit-backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); border-color: rgba(255,255,255,0.6); box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 6px 20px rgba(20,16,12,0.08); }
+body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dark .add-dashed-btn, body.glass.dark .add-profile-btn, body.glass.dark .month-nav-btn, body.glass.dark .installment-preview, body.glass.dark .split-row, body.glass.dark .action-btn, body.glass.dark .source-breakdown-item, body.glass.dark .menu-item, body.glass.dark .bill-amount-input, body.glass.dark .profile-card { background: rgba(30,30,40, calc(0.5 * var(--gl-k))); border-color: rgba(255,255,255,0.1); }
 </style>
 </head>
 <body>
@@ -1712,6 +1778,13 @@ body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
   <div id="updateBannerText">🆕 Atualizando…</div>
 </div>
 
+<div id="loginGate" style="position:fixed;inset:0;background:var(--cream);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:998;padding:24px;text-align:center;">
+  <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="width:72px;height:72px;margin-bottom:18px;"><rect width="64" height="64" rx="14" fill="#2C4F3D"/><g transform="translate(8,18)"><path d="M6 16 L10 6 Q12 3 16 3 L32 3 Q36 3 38 6 L42 16" fill="none" stroke="#D9A949" stroke-width="3" stroke-linecap="round"/><rect x="2" y="15" width="44" height="14" rx="5" fill="#D9A949"/><circle cx="12" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/><circle cx="36" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/></g></svg>
+  <div style="font-family:'Fraunces',serif;font-weight:600;font-size:26px;color:var(--vault);">Dueto</div>
+  <div class="section-sub" style="margin:8px 0 28px;max-width:300px;">Entre com sua conta Google para sincronizar o casal entre os dois celulares.</div>
+  <button class="btn btn-primary" style="max-width:300px;" onclick="fbSignIn()">Continuar com Google</button>
+  <button class="btn btn-ghost" style="max-width:300px;" onclick="fbSkipGate()">Usar só neste aparelho</button>
+</div>
 <div class="app" id="app">
 
   <!-- ===================== HOME ===================== -->
@@ -1903,6 +1976,38 @@ body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
   </div>
 
   <!-- ===================== SETTINGS ===================== -->
+  <div class="screen" id="screen-aparencia">
+    <div class="topbar">
+      <div class="screen-title-group">
+        <div class="month-nav-btn" onclick="closeAparencia()" style="cursor:pointer;">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none"><path d="M15 18l-6-6 6-6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="screen-title">Aparência</div>
+      </div>
+    </div>
+    <div class="section-sub" style="margin-bottom:10px;">Só neste aparelho. Não sincroniza com a conta.</div>
+    <div class="field" style="margin-top:8px;">
+      <label>Modo Escuro</label>
+      <div class="seg" id="darkModeSeg">
+        <div class="seg-opt" data-m="light" onclick="setDarkMode('light')">☀️ Claro</div>
+        <div class="seg-opt" data-m="system" onclick="setDarkMode('system')">⚙️ Sistema</div>
+        <div class="seg-opt" data-m="dark" onclick="setDarkMode('dark')">🌙 Escuro</div>
+      </div>
+    </div>
+    <div class="field" style="margin-top:8px;">
+      <label>Cor do tema</label>
+      <div class="theme-color-grid" id="themeColorGrid"></div>
+    </div>
+    <div class="switch-row" style="margin-top:8px;">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Efeito transparente (liquid glass)</div>
+        <div class="switch-row-sub">Barra, folhas e cartões translúcidos sobre um fundo colorido. Só neste aparelho.</div>
+      </div>
+      <div class="switch" id="swGlass" onclick="toggleLiquidGlass()"></div>
+    </div>
+    <div id="glassControls"></div>
+  </div>
+
   <div class="screen" id="screen-settings">
     <div class="topbar">
       <div class="screen-title-group">
@@ -1938,26 +2043,11 @@ body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
       </div>
       <div class="switch" id="statsToggle" onclick="toggleStatsTab()"></div>
     </div>
-    <div class="field" style="margin-top:8px;">
-      <label>Modo Escuro</label>
-      <div class="seg" id="darkModeSeg">
-        <div class="seg-opt" data-m="light" onclick="setDarkMode('light')">☀️ Claro</div>
-        <div class="seg-opt" data-m="system" onclick="setDarkMode('system')">⚙️ Sistema</div>
-        <div class="seg-opt" data-m="dark" onclick="setDarkMode('dark')">🌙 Escuro</div>
-      </div>
+    <div class="menu-item" onclick="openAparencia()" style="margin-top:12px;cursor:pointer;">
+      <span class="ic">🎨</span>
+      <div><div class="menu-item-title">Aparência</div><div class="menu-item-sub">Modo, cor do tema e efeito transparente</div></div>
+      <span class="ic" style="margin-left:auto;">›</span>
     </div>
-    <div class="field" style="margin-top:8px;">
-      <label>Cor do tema</label>
-      <div class="theme-color-grid" id="themeColorGrid"></div>
-    </div>
-    <div class="switch-row" style="margin-top:8px;">
-      <div class="switch-row-text">
-        <div class="switch-row-title">Efeito transparente (liquid glass)</div>
-        <div class="switch-row-sub">Barra, folhas e cartões translúcidos sobre um fundo colorido. Só neste aparelho.</div>
-      </div>
-      <div class="switch" id="swGlass" onclick="toggleLiquidGlass()"></div>
-    </div>
-    <div id="glassControls"></div>
 
     <!-- PREVISÃO DE GANHO -->
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Planejamento</div></div>
@@ -1970,6 +2060,8 @@ body.dark #glassRange::-moz-range-track { background: rgba(255,255,255,0.3); }
     </div>
 
     <!-- SINCRONIZAÇÃO -->
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Conta e casal</div></div>
+    <div id="fbAccountBox" class="section-sub">Carregando…</div>
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Sincronização</div></div>
     <div id="syncUrlLockedView" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-top:8px;display:flex;align-items:center;gap:12px;">
       <div style="font-size:22px;">🔒</div>
@@ -2186,7 +2278,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.3.6';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.6.1';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 async function checkForUpdateOnBoot(){
   try{
@@ -2544,7 +2636,12 @@ async function loadAll(manual = false){
 
   applyAllAppearance();
 
-  if(syncUrl){
+  if(fbActive()){
+    await loadFromLocalStorage();
+    if(localStorage.getItem(PENDING_PUSH_KEY)) await fbPushState(buildCloudPayload());
+    fbStartListening();
+    setSyncStatus('synced');
+  } else if(syncUrl){
     setSyncStatus('syncing');
     showLoadingState('Buscando dados da nuvem…');
     try{
@@ -2645,7 +2742,7 @@ function buildCloudPayload(){
 const PENDING_PUSH_KEY = 'pendingCloudPush';
 
 function scheduleCloudPush(){
-  if(!syncUrl){ setSyncStatus('nolink'); return; }
+  if(!syncUrl && !fbActive()){ setSyncStatus('nolink'); return; }
   setSyncStatus('saving');
   try{ localStorage.setItem(PENDING_PUSH_KEY, JSON.stringify(buildCloudPayload())); }catch(e){}
   clearTimeout(syncPushTimer);
@@ -2653,6 +2750,7 @@ function scheduleCloudPush(){
 }
 
 async function pushToCloud(){
+  if(fbActive()){ await fbPushState(buildCloudPayload()); return; }
   if(!syncUrl) return;
   const payload = buildCloudPayload();
   let body;
@@ -2744,10 +2842,62 @@ function glassOptionsOf(c){
     : Array.from(c.querySelectorAll(':scope > .seg-opt'));
 }
 function glassIsHorizontal(c){ return getComputedStyle(c).flexDirection !== 'column'; }
+function buildTabOverlay(){
+  const bar = document.querySelector('.tabbar-inner');
+  if(!bar || bar.querySelector('.tab-layer')) return;
+  ['tab-base','tab-ov'].forEach(cls => {
+    const d = document.createElement('div');
+    d.className = 'tab-layer ' + cls;
+    d.setAttribute('aria-hidden', 'true');
+    bar.appendChild(d);
+  });
+  rebuildTabOverlay();
+  positionTabPill(undefined, false);
+}
+function rebuildTabOverlay(){
+  const bar = document.querySelector('.tabbar-inner');
+  if(!bar) return;
+  ['.tab-base','.tab-ov'].forEach(sel => {
+    const layer = bar.querySelector(':scope > ' + sel);
+    if(!layer) return;
+    layer.innerHTML = '';
+    bar.querySelectorAll(':scope > .tab').forEach(tab => {
+      const c = tab.cloneNode(true);
+      c.removeAttribute('id');
+      c.removeAttribute('onclick');
+      c.classList.remove('active');
+      c.classList.add('tab-ov-item');
+      layer.appendChild(c);
+    });
+  });
+}
+function syncTabOverlayClip(animate){
+  const bar = document.querySelector('.tabbar-inner');
+  const base = bar && bar.querySelector(':scope > .tab-base');
+  const ov = bar && bar.querySelector(':scope > .tab-ov');
+  const p = bar && bar.querySelector(':scope > .glass-pill');
+  if(!base || !ov || !p) return;
+  const tr = animate ? '' : 'none';
+  base.style.transition = tr;
+  ov.style.transition = tr;
+  const W = bar.offsetWidth, H = bar.offsetHeight;
+  const on = p.classList.contains('on');
+  const l  = on ? (parseFloat(p.style.left) || 0)   : 0;
+  const tp = on ? (parseFloat(p.style.top) || 0)    : 0;
+  const w  = on ? (parseFloat(p.style.width) || 0)  : 0;
+  const h  = on ? (parseFloat(p.style.height) || 0) : 0;
+  // Base: tudo menos o retângulo da gota (regra evenodd). Mesmo número de comandos sempre, para a transição funcionar.
+  base.style.clipPath = `path(evenodd, "M0 0 H${W} V${H} H0 Z M${l} ${tp} V${tp + h} H${l + w} V${tp} Z")`;
+  // Destaque: só dentro da gota, com cantos arredondados.
+  ov.style.clipPath = on
+    ? `inset(${tp}px ${Math.max(0, W - (l + w))}px ${Math.max(0, H - (tp + h))}px ${l}px round 12px)`
+    : 'inset(0 100% 0 0 round 12px)';
+}
+
 function glassPlace(c, opt, animate){
   if(!isGlass() || !c) return;
   const p = glassPill(c);
-  if(!opt || opt.classList.contains('hidden-tab') || opt.offsetParent === null){ p.classList.remove('on'); return; }
+  if(!opt || opt.classList.contains('hidden-tab') || opt.offsetParent === null){ p.classList.remove('on'); if(c.classList.contains('tabbar-inner')) syncTabOverlayClip(false); return; }
   const anim = animate !== false;
   const L = opt.offsetLeft + 'px', T = opt.offsetTop + 'px', W = opt.offsetWidth + 'px', H = opt.offsetHeight + 'px';
   // Já está nesta posição: não mexe no estilo (senão cancela a animação em andamento)
@@ -2768,6 +2918,7 @@ function glassPlace(c, opt, animate){
     p.style.transform = '';
   }
   p.classList.add('on');
+  if(c.classList.contains('tabbar-inner')) syncTabOverlayClip(anim);
 }
 function positionTabPill(id, animate){
   glassPlace(document.querySelector('.tabbar-inner'), document.getElementById(id || currentTabId()), animate);
@@ -2815,6 +2966,7 @@ function glassDragTo(c, d, pt){
     p.style.transform = `scale(${cross}, ${along})`;
   }
   p.classList.add('on');
+  if(c.classList.contains('tabbar-inner')) syncTabOverlayClip(false);
 }
 function glassRelease(c, d, pt){
   const horiz = glassIsHorizontal(c);
@@ -2905,6 +3057,27 @@ function goMonth(){
   showScreen('screen-month'); activateTab('tabMonth');
   renderMonth();
 }
+function openAparencia(){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','slide-r','slide-l'));
+  const el = document.getElementById('screen-aparencia');
+  el.classList.add('active','slide-r');
+  activateTab('tabSettings');
+  renderSettings();
+  glassRefreshAll(false);
+  const appEl = document.getElementById('app');
+  if(appEl) appEl.scrollTop = 0;
+}
+
+function closeAparencia(){
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','slide-r','slide-l'));
+  document.getElementById('screen-settings').classList.add('active','slide-l');
+  activateTab('tabSettings');
+  renderSettings();
+  glassRefreshAll(false);
+  const appEl = document.getElementById('app');
+  if(appEl) appEl.scrollTop = 0;
+}
+
 function goSettings(){
   showScreen('screen-settings'); activateTab('tabSettings');
   renderSettings();
@@ -2940,7 +3113,7 @@ function applyTabVisibility(){
   if(!showFeira && document.getElementById('screen-feira').classList.contains('active')){
     goMonth();
   }
-  glassRefreshAll(false);
+  rebuildTabOverlay(); glassRefreshAll(false);
 }
 async function toggleStatsTab(){
   localSettings.showStats = !localSettings.showStats;
@@ -3334,6 +3507,7 @@ function personAvatarInner(key, label){
 }
 
 function renderSettings(){
+  renderFbAccount();
   const swGlass = document.getElementById('swGlass');
   if(swGlass) swGlass.classList.toggle('on', localSettings.liquidGlass === true);
   renderGlassControls();
@@ -3663,6 +3837,123 @@ async function unlockWithPassword(){
     if(input) input.style.borderColor = 'var(--terracotta)';
   }
 }
+
+// ── Firebase: conta, casal e sincronização ─────────────────────────
+function fbActive(){ return !!(window.fb && window.fb.user && localSettings.fbHid); }
+function fbStartListening(){
+  if(!fbActive()) return;
+  window.fb.listen(localSettings.fbHid, async (data, meta) => {
+    if(meta.pending || meta.by === window.fb.user.uid) return; // ignora o que eu mesmo enviei
+    applyCloudData(data);
+    await persistLocalOnlySilently();
+    renderAll(); renderMonth();
+    setSyncStatus('synced');
+  });
+}
+async function fbPushState(payload){
+  if(!fbActive()) return;
+  try{
+    await window.fb.push(localSettings.fbHid, payload);
+    localStorage.removeItem(PENDING_PUSH_KEY);
+    setSyncStatus('synced');
+    logSyncEvent('success', 'Dados enviados (Firebase)', '');
+  }catch(e){
+    setSyncStatus('nolink');
+    logSyncEvent('error', 'Firebase: ' + (e.message || e), '');
+  }
+}
+window.addEventListener('fb-auth', () => {
+  if(window.fb && window.fb.user) hideLoginGate();
+  if(window.fb && window.fb.user && localSettings.fbHid) fbStartListening();
+  if(!window.fb || !window.fb.user) { if(window.fb) window.fb.stopListen(); }
+  renderFbAccount();
+});
+window.addEventListener('firebase-ready', renderFbAccount);
+
+// Tela de entrada (abre na primeira vez, se ainda não entrou)
+function showLoginGate(){ const g=document.getElementById('loginGate'); if(g) g.style.display='flex'; }
+function hideLoginGate(){ const g=document.getElementById('loginGate'); if(g) g.style.display='none'; }
+async function fbSkipGate(){
+  localSettings.fbSkipGate = true;
+  await persistLocalSettings();
+  hideLoginGate();
+}
+window.addEventListener('firebase-ready', () => {
+  if(window.fb && !window.fb.user && !localSettings.fbSkipGate) showLoginGate();
+});
+
+
+function renderFbAccount(){
+  const box = document.getElementById('fbAccountBox'); if(!box) return;
+  if(!window.fb){ box.innerHTML = '<div class="section-sub">Conta indisponível sem conexão. O app continua funcionando neste aparelho.</div>'; return; }
+  const u = window.fb.user;
+  if(!u){
+    box.innerHTML = `<div class="menu-item" onclick="fbSignIn()" style="cursor:pointer;"><span class="ic">G</span><div><div class="menu-item-title">Entrar com Google</div><div class="menu-item-sub">Para sincronizar o casal entre os dois celulares</div></div></div>`;
+    return;
+  }
+  const who = escapeHtml(u.displayName || u.email || 'conta Google');
+  if(!localSettings.fbHid){
+    box.innerHTML = `<div class="section-sub" style="margin-bottom:8px;">Conectado como ${who}</div>
+      <div class="menu-item" onclick="fbCreateSheet()" style="cursor:pointer;"><span class="ic">💑</span><div><div class="menu-item-title">Criar casal</div><div class="menu-item-sub">Usa os dados deste aparelho como ponto de partida</div></div></div>
+      <div class="menu-item" onclick="fbJoinSheet()" style="cursor:pointer;margin-top:8px;"><span class="ic">🔑</span><div><div class="menu-item-title">Entrar com código</div><div class="menu-item-sub">Usa o código que a outra pessoa criou</div></div></div>
+      <div class="menu-item" onclick="fbSignOut()" style="cursor:pointer;margin-top:8px;"><span class="ic">↪️</span><div><div class="menu-item-title">Sair da conta</div></div></div>`;
+    return;
+  }
+  box.innerHTML = `<div class="section-sub" style="margin-bottom:8px;">Conectado como ${who}</div>
+    <div class="menu-item"><span class="ic">🔗</span><div><div class="menu-item-title">Casal conectado</div><div class="menu-item-sub">Sincronizando em tempo real${localSettings.fbCode ? ' · código: ' + escapeHtml(localSettings.fbCode) : ''}</div></div></div>
+    <div class="menu-item" onclick="fbLeave()" style="cursor:pointer;margin-top:8px;"><span class="ic">✋</span><div><div class="menu-item-title">Desconectar o casal deste aparelho</div></div></div>
+    <div class="menu-item" onclick="fbSignOut()" style="cursor:pointer;margin-top:8px;"><span class="ic">↪️</span><div><div class="menu-item-title">Sair da conta</div></div></div>`;
+}
+async function fbSignIn(){
+  try{ await window.fb.signIn(); }catch(e){ showToast('Não foi possível entrar: ' + (e.message || e.code)); }
+}
+function fbCreateSheet(){
+  openSheet(`${sheetHeader('Criar casal')}
+    <div class="sheet-sub">Os dados atuais deste aparelho serão enviados como ponto de partida. Depois, você gera um código para a outra pessoa entrar.</div>
+    <button class="btn btn-primary" onclick="fbCreateConfirmed()">Criar casal</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>`);
+}
+async function fbCreateConfirmed(){
+  try{
+    const r = await window.fb.createHousehold(buildCloudPayload());
+    localSettings.fbHid = r.hid; localSettings.fbCode = r.code;
+    await persistLocalSettings();
+    fbStartListening(); closeSheet(); renderFbAccount();
+    showToast('Casal criado. Código: ' + r.code);
+  }catch(e){ showToast('Erro ao criar casal: ' + (e.message || e)); }
+}
+function fbJoinSheet(){
+  openSheet(`${sheetHeader('Entrar com código')}
+    <div class="sheet-sub">Digite o código da outra pessoa. Os dados deste aparelho serão substituídos pelos do casal.</div>
+    <div class="field"><label>Código</label><input type="text" id="fbJoinCode" maxlength="6" placeholder="ex: K7P2QX" style="text-transform:uppercase;" /></div>
+    <button class="btn btn-primary" onclick="fbJoinConfirmed()">Entrar no casal</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>`);
+}
+async function fbJoinConfirmed(){
+  const code = (document.getElementById('fbJoinCode').value || '').trim();
+  if(!code){ showToast('Digite o código'); return; }
+  try{
+    const hid = await window.fb.joinHousehold(code);
+    const st = await window.fb.getState(hid);
+    if(st && st.data) applyCloudData(st.data);
+    localSettings.fbHid = hid; localSettings.fbCode = code.toUpperCase();
+    await persistLocalSettings(); await persistLocalOnlySilently();
+    fbStartListening(); closeSheet(); renderAll(); renderMonth(); renderFbAccount();
+    showToast('Casal conectado!');
+  }catch(e){ showToast('Não foi possível entrar: ' + (e.message || e)); }
+}
+async function fbSignOut(){
+  try{ await window.fb.signOut(); }catch(e){}
+  localSettings.fbHid = null; localSettings.fbCode = null;
+  await persistLocalSettings(); renderFbAccount();
+}
+async function fbLeave(){
+  if(window.fb) window.fb.stopListen();
+  localSettings.fbHid = null; localSettings.fbCode = null;
+  await persistLocalSettings(); renderFbAccount();
+  showToast('Casal desconectado deste aparelho');
+}
+
 async function finishCloudSync(decoded, manual){
   applyCloudData(decoded);
   if(pruneOrphanedBillData()) await persistMonthData();
@@ -4748,10 +5039,24 @@ async function deleteVaultConfirmed(){
   showToast('Cofre excluído'); goHome();
 }
 
+// Animação de troca de conteúdo (Corrida+ 0.167)
+function animarTroca(ids, dir){
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.classList.remove('troca-r', 'troca-l');
+    void el.offsetWidth;
+    el.classList.add(dir > 0 ? 'troca-r' : 'troca-l');
+  });
+}
+// Remove a classe de troca depois de animar, para não repetir ao reabrir a tela
+document.addEventListener('animationend', e => { if(e.target.classList) e.target.classList.remove('troca-r','troca-l'); });
+
 function changeMonth(delta){
   const [y,m] = currentMonthKey.split('-').map(Number);
   currentMonthKey = monthKeyFor(new Date(y, m-1+delta, 1));
   renderMonth(); renderActiveScreen();
+  animarTroca(['mainMonthContent','feiraContent','statsContent'], delta);
 }
 
 let pickerYear = null;
@@ -6250,7 +6555,90 @@ if(window.matchMedia){
 const svEl = document.getElementById('splashVersion');
 if(svEl) svEl.textContent = 'v' + APP_VERSION;
 
+buildTabOverlay();
 loadAll();
+</script>
+<script type="module">
+// Firebase: login Google, casal (households) e sincronização em tempo real.
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged }
+  from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, arrayUnion }
+  from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyANGE5cqH6PLIgn3pIvbaPknH0Tb0m1yI0",
+  authDomain: "dueto-f28e7.firebaseapp.com",
+  projectId: "dueto-f28e7",
+  storageBucket: "dueto-f28e7.firebasestorage.app",
+  messagingSenderId: "151200626401",
+  appId: "1:151200626401:web:5ddff261a14921180ea9a0",
+  measurementId: "G-J5G608L3M6"
+};
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+let unsubscribe = null;
+
+const CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+const randCode = (n) => Array.from({length:n}, () => CODE_CHARS[Math.floor(Math.random()*CODE_CHARS.length)]).join('');
+
+window.fb = {
+  get user(){ return auth.currentUser; },
+  async signIn(){
+    try{ await signInWithPopup(auth, provider); }
+    catch(e){
+      // Safari/iPhone instalado bloqueia o popup: usa redirecionamento como plano B
+      if(e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment'){
+        await signInWithRedirect(auth, provider);
+      } else if(e.code !== 'auth/popup-closed-by-user'){ throw e; }
+    }
+  },
+  async signOut(){ this.stopListen(); await signOut(auth); },
+  async createHousehold(payload){
+    const uid = auth.currentUser.uid;
+    const hid = randCode(16), code = randCode(6);
+    await setDoc(doc(db,'invites',code), { hid });
+    await setDoc(doc(db,'households',hid), { members:[uid], code, data: payload, updatedAt: Date.now(), by: uid });
+    return { hid, code };
+  },
+  async joinHousehold(code){
+    const uid = auth.currentUser.uid;
+    const inv = await getDoc(doc(db,'invites', String(code).trim().toUpperCase()));
+    if(!inv.exists()) throw new Error('Código inválido');
+    const hid = inv.data().hid;
+    const hs = await getDoc(doc(db,'households',hid));
+    if(!hs.exists()) throw new Error('Casal não encontrado');
+    const members = hs.data().members || [];
+    if(!members.includes(uid)){
+      if(members.length >= 2) throw new Error('Este casal já tem duas pessoas');
+      await updateDoc(doc(db,'households',hid), { members: arrayUnion(uid) });
+    }
+    return hid;
+  },
+  async getState(hid){
+    const s = await getDoc(doc(db,'households',hid));
+    return s.exists() ? s.data() : null;
+  },
+  async push(hid, payload){
+    await setDoc(doc(db,'households',hid), { data: payload, updatedAt: Date.now(), by: auth.currentUser.uid }, { merge: true });
+  },
+  listen(hid, cb){
+    this.stopListen();
+    unsubscribe = onSnapshot(doc(db,'households',hid), snap => {
+      if(!snap.exists()) return;
+      const d = snap.data();
+      cb(d.data, { by: d.by, updatedAt: d.updatedAt, pending: snap.metadata.hasPendingWrites });
+    });
+  },
+  stopListen(){ if(unsubscribe){ unsubscribe(); unsubscribe = null; } }
+};
+
+onAuthStateChanged(auth, user => {
+  window.dispatchEvent(new CustomEvent('fb-auth', { detail: user }));
+});
+window.dispatchEvent(new Event('firebase-ready'));
 </script>
 </body>
 </html>
