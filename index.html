@@ -2278,7 +2278,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.6.1';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.6.2';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 async function checkForUpdateOnBoot(){
   try{
@@ -3869,6 +3869,8 @@ window.addEventListener('fb-auth', () => {
   renderFbAccount();
 });
 window.addEventListener('firebase-ready', renderFbAccount);
+// Se o SDK do Firebase não carregar (rede ou bloqueador), avisa em vez de ficar em "Carregando…"
+setTimeout(() => { if(!window.fb){ window.__fbFailed = true; renderFbAccount(); } }, 6000);
 
 // Tela de entrada (abre na primeira vez, se ainda não entrou)
 function showLoginGate(){ const g=document.getElementById('loginGate'); if(g) g.style.display='flex'; }
@@ -3885,7 +3887,14 @@ window.addEventListener('firebase-ready', () => {
 
 function renderFbAccount(){
   const box = document.getElementById('fbAccountBox'); if(!box) return;
-  if(!window.fb){ box.innerHTML = '<div class="section-sub">Conta indisponível sem conexão. O app continua funcionando neste aparelho.</div>'; return; }
+  if(!window.fb){
+    const msg = window.__fbFailed
+      ? 'Não foi possível carregar o login do Google. Verifique a internet e desative bloqueadores de conteúdo para gstatic.com e firebaseapp.com. O app continua funcionando sem conta.'
+      : 'Carregando login do Google…';
+    box.innerHTML = `<div class="section-sub" style="margin-bottom:8px;">${msg}</div>
+      <div class="menu-item" onclick="fbSignIn()" style="cursor:pointer;"><span class="ic">G</span><div><div class="menu-item-title">Entrar com Google</div><div class="menu-item-sub">Toque para tentar de novo</div></div></div>`;
+    return;
+  }
   const u = window.fb.user;
   if(!u){
     box.innerHTML = `<div class="menu-item" onclick="fbSignIn()" style="cursor:pointer;"><span class="ic">G</span><div><div class="menu-item-title">Entrar com Google</div><div class="menu-item-sub">Para sincronizar o casal entre os dois celulares</div></div></div>`;
@@ -3905,6 +3914,7 @@ function renderFbAccount(){
     <div class="menu-item" onclick="fbSignOut()" style="cursor:pointer;margin-top:8px;"><span class="ic">↪️</span><div><div class="menu-item-title">Sair da conta</div></div></div>`;
 }
 async function fbSignIn(){
+  if(!window.fb){ showToast('Login ainda não carregou. Verifique a internet e recarregue a página.'); return; }
   try{ await window.fb.signIn(); }catch(e){ showToast('Não foi possível entrar: ' + (e.message || e.code)); }
 }
 function fbCreateSheet(){
