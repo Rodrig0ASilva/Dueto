@@ -197,28 +197,6 @@ window.applySplashAppearance = function(s, dark){
     return onSnapshot(doc(fbDb, 'users', uid), (snap) => { if(snap.exists()) callback(snap.data()); });
   };
 
-  // Lê o estado da assinatura (Fase 3 — Stripe), assim que essa coleção
-  // existir. A coleção customers/{uid}/subscriptions é escrita SÓ pela
-  // extensão Stripe (via Cloud Functions, que ignoram as regras do
-  // cliente) — nunca por este script. Devolve null se não houver nenhuma
-  // assinatura ativa/em teste, ou se a coleção ainda nem existir (antes
-  // de o Stripe estar configurado) — nesse caso, o app simplesmente
-  // mostra "sem assinatura", sem erro.
-  window.fbListenSubscription = (uid, callback) => {
-    try{
-      const subsRef = collection(fbDb, 'customers', uid, 'subscriptions');
-      const q = query(subsRef, where('status', 'in', ['active', 'trialing']));
-      return onSnapshot(q,
-        (snap) => { callback(snap.empty ? null : snap.docs[0].data()); },
-        (err) => { console.warn('Falha ao ler assinatura (normal se o Stripe ainda não estiver configurado):', err); callback(null); }
-      );
-    }catch(e){
-      console.warn('fbListenSubscription falhou:', e);
-      callback(null);
-      return () => {};
-    }
-  };
-
   // ===== Grupos partilhados =====
   // groups/{gid}: nome, dono, membros e código de convite.
   // groups/{gid}/months/{AAAA-MM}: rendas e contas partilhadas desse mês.
@@ -229,10 +207,11 @@ window.applySplashAppearance = function(s, dark){
     for(let i = 0; i < 8; i++) c += al[Math.floor(Math.random() * al.length)];
     return c;
   };
+  const nomeDaConta = () => fbAuth.currentUser?.displayName || fbAuth.currentUser?.email || 'Pessoa';
   window.fbGrupoCriar = async (uid, nome) => {
     const gid = doc(collection(fbDb, 'groups')).id;
     const code = gerarCodigoConvite();
-    await setDoc(doc(fbDb, 'groups', gid), { name: nome, ownerUid: uid, members: [uid], code, createdAt: Date.now() });
+    await setDoc(doc(fbDb, 'groups', gid), { name: nome, ownerUid: uid, members: [uid], names: { [uid]: nomeDaConta() }, code, createdAt: Date.now() });
     await setDoc(doc(fbDb, 'invites', code), { groupId: gid });
     return { gid, code, name: nome };
   };
@@ -240,9 +219,13 @@ window.applySplashAppearance = function(s, dark){
     const inv = await getDoc(doc(fbDb, 'invites', code));
     if(!inv.exists()) throw new Error('codigo_invalido');
     const gid = inv.data().groupId;
-    await updateDoc(doc(fbDb, 'groups', gid), { members: arrayUnion(uid) });
+    await updateDoc(doc(fbDb, 'groups', gid), { members: arrayUnion(uid), ['names.' + uid]: nomeDaConta() });
     const g = await getDoc(doc(fbDb, 'groups', gid));
     return { gid, code, name: g.data().name };
+  };
+  window.fbGrupoInfo = async (gid) => {
+    const s = await getDoc(doc(fbDb, 'groups', gid));
+    return s.exists() ? s.data() : null;
   };
   window.fbGrupoSair = async (uid, gid) => {
     await updateDoc(doc(fbDb, 'groups', gid), { members: arrayRemove(uid) });
@@ -1146,13 +1129,14 @@ body.glass.dark .loans-box { background: rgba(30,30,40,0.5); border-color: rgba(
       </div>
     </div>
 
+    <div id="profileCardsList"></div>
+
     <div class="cfg-group">
       <div class="cfg-head"><span>Grupo partilhado</span></div>
       <div id="grupoBox" style="padding:8px 0;"></div>
     </div>
     <div id="basicBanner">🔒 <strong><span data-i18n="modo_basico_titulo">Modo básico.</span></strong> Limite de 5 ganhos, 5 despesas variáveis e 5 despesas fixas, e as configurações ficam bloqueadas. Entra com a tua conta Google para desbloquear tudo.</div>
     <div class="section-head" style="margin-top:6px;"><div class="section-title" data-i18n="conta">Conta</div></div>
-    <div id="profileCardsList"></div>
     <button onclick="openCriptografiaSheet()" style="display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;margin:12px 0 8px;padding:14px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;text-align:left;">
       <span><span data-i18n="cripto_dados">🔐 Criptografia dos dados</span><span style="display:block;font-size:11px;font-weight:500;color:var(--text-muted);margin-top:3px;"><span data-i18n="cripto_desc">Cifra os dados enviados para a nuvem. Opcional e sob a tua responsabilidade</span></span></span>
       <span style="font-size:20px;color:var(--text-muted);">›</span>
@@ -2047,7 +2031,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.198';
+const APP_VERSION = '0.199';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -2094,7 +2078,6 @@ async function setIdioma(lang){
   refreshActiveScreen();
   renderSettings();
   renderReadOnlyBanner();
-  renderSubscriptionCard();
   renderInstalarBanner();
   if(document.querySelector('#sheet [data-welcome]') && document.getElementById('overlay').classList.contains('show')) showWelcomeSheet();
 }
@@ -2106,6 +2089,8 @@ async function setIdioma(lang){
 (function showSplashVersion(){
   const el = document.getElementById('splashVersion');
   if(el) el.textContent = `v${APP_VERSION}`;
+  const vs = document.getElementById('appVersionDisplay');
+  if(vs) vs.textContent = APP_VERSION;
 })();
 
 if (!window.storage) {
@@ -3552,7 +3537,7 @@ function openCondicoesSheet(){
     ${secoes}
     <button class="btn btn-ghost" onclick="openRenovarSheet()" style="margin-top:14px;">${tr('m_voltar')}</button>`);
 }
-function openRenovarSheet(){
+function openRenovarSheet(){ return; // assinatura removida
   // Só existe o plano de 1 mês: a folha mostra logo os dados de pagamento e o envio do comprovativo.
   openSheet(`
     <div class="sheet-handle"></div>
@@ -3772,7 +3757,6 @@ document.addEventListener('contextmenu', e => {
   if(e.target && e.target.closest && e.target.closest('.tabbar')) e.preventDefault();
 });
 // Reavalia a data de validade de tempos em tempos, mesmo sem nenhuma alteração no Firestore.
-setInterval(() => { try{ renderSubscriptionCard(); renderReadOnlyBanner(); }catch(e){} }, 60 * 1000);
 
 // Troca o texto da tela de carregamento com desvanecimento (sai, troca, entra), sem piscar.
 window.__splashTok = 0;
@@ -3848,14 +3832,6 @@ async function loadAll(){
           .then(r => { if(r === 'ok') refreshActiveScreen(); });
       });
     });
-    if(window.fbListenSubscription){
-      if(unsubSubscription) unsubSubscription();
-      unsubSubscription = window.fbListenSubscription(uid, (sub) => {
-        window.__fbSubscription = sub;
-        renderSettings();
-        renderReadOnlyBanner();
-      });
-    }
     const syncDone = initialCloudSync(uid).then(() => {
       if(syncUrl && !profile.syncUrl) persistSyncUrl();
       backupToSheetIfDue();
@@ -5202,12 +5178,6 @@ function renderSettings(){
     : `<div style="font-size:11px;color:var(--text-muted);line-height:1.5;margin-top:12px;">${tr('m_sem_conta_google')}</div>
        <button id="settingsGoogleSignInBtn" onclick="handleGoogleSignIn()" style="display:flex;align-items:center;gap:8px;background:#fff;color:#2A2420;border:1.5px solid var(--line);padding:10px 18px;border-radius:100px;font-weight:700;font-size:13px;cursor:pointer;margin-top:10px;">${googleG} Continuar com Google</button>
        <div id="settingsGoogleSignInError" style="font-size:11px;color:var(--terracotta);margin-top:6px;"></div>`;
-  const subBlock = `
-      <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--line);">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;color:var(--text-muted);margin-bottom:4px;">${tr('m_assinatura')}</div>
-        <div id="subscriptionStatus" style="font-weight:700;font-size:var(--text-sm);">—</div>
-        <div id="subscriptionDetail" style="font-size:11px;color:var(--text-muted);margin-top:3px;line-height:1.5;"></div>
-      </div>`;
   document.getElementById('profileCardsList').innerHTML = `
     <div class="profile-card">
       <div class="profile-card-head">
@@ -5225,7 +5195,6 @@ function renderSettings(){
       </div>
       ${profile.photo ? `<div class="profile-card-actions"><button class="profile-action-btn danger" onclick="removeProfilePhoto()">${tr('m_repor_foto')}</button></div>` : ''}
       ${accountBlock}
-      ${subBlock}
     </div>`;
   const avEl = document.getElementById('profileAvatar');
   if(avEl && photoSrc){
@@ -5234,7 +5203,6 @@ function renderSettings(){
     avEl.style.backgroundPosition = 'center';
     avEl.style.backgroundRepeat = 'no-repeat';
   }
-  renderSubscriptionCard();
 
   document.querySelectorAll('#langSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.l === LANG));
   const currentDark = localSettings.darkMode || 'system';
@@ -5266,17 +5234,7 @@ function renderSettings(){
   if(customBody) customBody.style.display = customPlatformsOn() ? 'block' : 'none';
   document.body.classList.toggle('basic-mode', basicMode());
   const bb = document.getElementById('basicBanner');
-  if(bb){
-    bb.style.display = basicMode() ? 'block' : 'none';
-    if(window.__fbUser && window.__fbSubscription === null){
-      bb.innerHTML = '🔒 <strong>' + tr('modo_basico_titulo') + '</strong> ' + tr('m_sub_limite') + '';
-    }
-    if(bb){
-      const antigo = document.getElementById('bbBuy');
-      if(antigo) antigo.remove();
-      if(basicMode()) bb.insertAdjacentHTML('beforeend', `<div id="bbBuy"><button onclick="openRenovarSheet()" style="margin-top:8px;padding:8px 14px;border-radius:var(--r-full);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:12px;cursor:pointer;">${tr('comprar_acesso')}</button></div>`);
-    }
-  }
+  if(bb){ bb.style.display = basicMode() ? 'block' : 'none'; }
   const swCom = document.getElementById('swComissao');
   if(swCom) swCom.className = 'switch' + (comissaoOn() ? ' on' : '');
   const comFieldsRow = document.getElementById('comissaoFieldsRow');
@@ -7270,7 +7228,6 @@ function basicLimitBlocked(kind, adding){
     <div class="sheet-title">${tr('m_limite_basico')}</div>
     <div class="sheet-sub">No modo básico podes ter até ${BASIC_LIMITS[kind]} ${BASIC_LABELS[kind]}.</div>
     <div style="font-size:13px;line-height:1.6;margin-bottom:14px;">${tr('m_registar_sem_limite')}</div>
-    <button class="btn btn-primary" onclick="closeSheet(); openRenovarSheet();">${tr('comprar_acesso')}</button>
     <button class="btn btn-ghost" onclick="closeSheet(); handleGoogleSignIn();">${tr('m_entrar_google')}</button>
     <button class="btn btn-ghost" onclick="closeSheet()">${tr('fechar')}</button>
   `);
@@ -8653,26 +8610,50 @@ function mesOuvirGrupo(){
     if(key === currentMonthKey && document.getElementById('screen-ganhos').classList.contains('active')) mesRender();
   });
 }
-function renderGrupo(){
+async function renderGrupo(){
   const box = document.getElementById('grupoBox');
   if(!box) return;
   if(!window.__fbUser){
-    box.innerHTML = '<div class="empty-note">Entra com a tua conta para criar ou entrar num grupo.</div>';
+    box.innerHTML = '<div class="empty-note">Entra com a tua conta Google para criar ou entrar num grupo.</div>';
     return;
   }
-  if(profile.grupoId){
+  if(!profile.grupoId){
     box.innerHTML = `
-      <div class="switch-row-title">${escapeHtml(profile.grupoNome || 'Grupo')}</div>
-      <div class="switch-row-sub">Código de convite: <strong>${escapeHtml(profile.grupoCodigo || '')}</strong></div>
-      <button class="btn btn-ghost" onclick="grupoCopiarCodigo()">Copiar código</button>
-      <button class="btn btn-ghost" onclick="grupoSair()">Sair do grupo</button>`;
+      <div class="field"><label>Criar grupo</label><input type="text" id="grupoNovoNome" maxlength="40" placeholder="ex: Casa da Ana e do Pedro" /></div>
+      <button class="btn btn-primary" onclick="grupoCriar()">Criar grupo</button>
+      <div class="field" style="margin-top:14px;"><label>Entrar com código</label><input type="text" id="grupoCodigoEntrar" maxlength="8" placeholder="código de convite" style="text-transform:uppercase;" /></div>
+      <button class="btn btn-ghost" onclick="grupoEntrar()">Entrar</button>`;
     return;
   }
   box.innerHTML = `
-    <div class="field"><label>Criar grupo</label><input type="text" id="grupoNovoNome" maxlength="40" placeholder="ex: Casa da Ana e do Pedro" /></div>
-    <button class="btn btn-primary" style="width:100%;" onclick="grupoCriar()">Criar grupo</button>
-    <div class="field" style="margin-top:14px;"><label>Entrar com código</label><input type="text" id="grupoCodigoEntrar" maxlength="8" placeholder="código de convite" style="text-transform:uppercase;" /></div>
-    <button class="btn btn-ghost" onclick="grupoEntrar()">Entrar</button>`;
+    <div class="switch-row-title">${escapeHtml(profile.grupoNome || 'Grupo')}</div>
+    <div class="switch-row-sub">Código de convite: <strong>${escapeHtml(profile.grupoCodigo || '')}</strong></div>
+    <div id="grupoMembros" style="margin:10px 0;"><div class="empty-note">A carregar participantes…</div></div>
+    <button class="btn btn-ghost" onclick="grupoCopiarCodigo()">Copiar código</button>
+    <button class="btn btn-ghost" onclick="grupoSair()">Sair do grupo</button>`;
+  try{
+    const info = await window.fbGrupoInfo(profile.grupoId);
+    const el = document.getElementById('grupoMembros');
+    if(!el || !info) return;
+    const nomes = info.names || {};
+    const membros = info.members || [];
+    el.innerHTML = membros.length ? membros.map(uid => {
+      const eu = uid === window.__fbUser.uid;
+      const nome = nomes[uid] || 'Participante';
+      return `
+        <div class="bill-row">
+          <div style="width:34px;height:34px;min-width:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;background:${eu ? 'var(--vault-light)' : 'var(--brass)'};">${escapeHtml(nome.charAt(0).toUpperCase())}</div>
+          <div class="bill-info">
+            <div class="bill-name">${escapeHtml(nome)}</div>
+            <div class="bill-sub">${eu ? 'Tu' : 'Participante'}</div>
+          </div>
+        </div>`;
+    }).join('') : '<div class="empty-note">Sem participantes.</div>';
+  }catch(e){
+    console.warn(e);
+    const el = document.getElementById('grupoMembros');
+    if(el) el.innerHTML = '<div class="empty-note">Não foi possível carregar os participantes.</div>';
+  }
 }
 function grupoGuardarMembro(r){
   profile.grupoId = r.gid;
