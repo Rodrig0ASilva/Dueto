@@ -207,10 +207,14 @@ window.applySplashAppearance = function(s, dark){
     for(let i = 0; i < 8; i++) c += al[Math.floor(Math.random() * al.length)];
     return c;
   };
-  const dadosDaConta = () => ({
-    name: fbAuth.currentUser?.displayName || fbAuth.currentUser?.email || 'Pessoa',
-    photo: fbAuth.currentUser?.photoURL || null
-  });
+  const dadosDaConta = () => {
+    let photo = fbAuth.currentUser?.photoURL || null;
+    if(photo && photo.includes('googleusercontent') && !/=s\d+/.test(photo)) photo += '=s96-c';
+    return { name: fbAuth.currentUser?.displayName || fbAuth.currentUser?.email || 'Pessoa', photo };
+  };
+  window.fbGrupoAtualizarMeuPerfil = async (gid, uid) => {
+    await updateDoc(doc(fbDb, 'groups', gid), { ['names.' + uid]: dadosDaConta() });
+  };
   window.fbGrupoCriar = async (uid, nome) => {
     const gid = doc(collection(fbDb, 'groups')).id;
     const code = gerarCodigoConvite();
@@ -997,6 +1001,8 @@ body.glass .sync-pill {
   border: 1px solid rgba(255,255,255,0.6);
 }
 body.glass.dark .sync-pill { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); }
+.btn-small { background: rgba(31,58,46,0.08); border: none; border-radius: var(--r-full); padding: 8px 14px; font-size: var(--text-xs); font-weight: 700; color: var(--vault-2); cursor: pointer; white-space: nowrap; }
+.btn-small:active { background: rgba(31,58,46,0.16); }
 </style>
 </head>
 <body>
@@ -1120,7 +1126,7 @@ body.glass.dark .sync-pill { background: rgba(255,255,255,0.08); border-color: r
           <div class="section-title">Contas e Despesas</div>
           <div class="section-sub" id="mesContasCount"></div>
         </div>
-        <button onclick="mesImportarMesAnterior()" style="background:rgba(31,58,46,0.08);border:none;border-radius:var(--r-full);padding:8px 14px;font-size:var(--text-xs);font-weight:700;color:var(--vault-2);cursor:pointer;white-space:nowrap;">Mês anterior</button>
+        <button class="btn-small" onclick="mesImportarMesAnterior()">Mês anterior</button>
       </div>
       <div class="loans-box" id="mesContas" style="padding:4px 14px;"></div>
       <div class="add-dashed-btn" onclick="mesAbrirConta()" style="margin-top:8px;margin-bottom:20px;"><span>＋</span> Adicionar conta</div>
@@ -2042,7 +2048,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.201';
+const APP_VERSION = '0.203';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -8635,8 +8641,9 @@ async function renderGrupo(){
     <div class="section-head" style="margin-top:14px;"><div class="section-title">Participantes</div></div>
     <div class="loans-box" id="grupoMembros" style="padding:4px 14px;"><div class="empty-note">A carregar participantes…</div></div>
     <button class="btn btn-ghost" onclick="grupoCopiarCodigo()">Copiar código</button>
-    <button class="btn btn-ghost" onclick="grupoSair()">Sair do grupo</button>`;
+    <button class="btn btn-danger-text" onclick="grupoSair()">Sair do grupo</button>`;
   try{
+    await window.fbGrupoAtualizarMeuPerfil(profile.grupoId, window.__fbUser.uid).catch(e => console.warn(e));
     const info = await window.fbGrupoInfo(profile.grupoId);
     const el = document.getElementById('grupoMembros');
     if(!el || !info) return;
@@ -8691,14 +8698,17 @@ async function grupoEntrar(){
     showToast(e.message === 'codigo_invalido' ? 'Código inválido' : 'Não foi possível entrar');
   }
 }
-async function grupoSair(){
-  if(!confirm('Sair do grupo? Deixas de ver e editar os dados partilhados.')) return;
+async function grupoSairAgora(){
   try{ await window.fbGrupoSair(window.__fbUser.uid, profile.grupoId); }
   catch(e){ console.warn(e); }
   delete profile.grupoId; delete profile.grupoCodigo; delete profile.grupoNome;
   await persistProfile(); mesOuvirGrupo(); renderSettings(); mesRender();
   showToast('Saíste do grupo');
 }
+function grupoSair(){
+  openConfirmSheet('Sair do grupo?', 'Deixas de ver e editar os dados partilhados.', 'Sair', () => grupoSairAgora());
+}
+
 function grupoCopiarCodigo(){
   if(navigator.clipboard) navigator.clipboard.writeText(profile.grupoCodigo || '');
   showToast('Código copiado');
@@ -9028,7 +9038,7 @@ function cofresAbrir(id){
     <button class="btn btn-ghost" onclick="cofresTransferirAbrir('${id}')">Transferir para outro cofre</button>
     <button class="btn btn-ghost" onclick="empAbrirNovo('${id}')">Emprestar deste cofre</button>
     <button class="btn btn-ghost" onclick="cofresEditarAbrir('${id}')">Editar cofre</button>
-    <button class="btn btn-ghost" onclick="cofresApagar('${id}')">Apagar cofre</button>`);
+    <button class="btn btn-danger-text" onclick="cofresApagar('${id}')">Apagar cofre</button>`);
 }
 function cofresMovimento(id, type){
   const amount = parseFloat(document.getElementById('cofreValor').value);
@@ -9093,14 +9103,17 @@ function cofresEditarSalvar(id){
   closeSheet(); showToast('Cofre atualizado');
 }
 
-function cofresApagar(id){
-  if(!confirm('Apagar este cofre e os seus movimentos? Os empréstimos feitos a partir dele deixam de devolver valores a este cofre.')) return;
+function cofresApagarAgora(id){
   finGravar({
     cofres: cofresLista().filter(v => v.id !== id),
     cofreMov: cofresMov().filter(m => m.vaultId !== id)
   });
   closeSheet(); showToast('Cofre apagado');
 }
+function cofresApagar(id){
+  openConfirmSheet('Apagar cofre?', 'Os movimentos deste cofre são apagados. Os empréstimos feitos a partir dele deixam de devolver valores a este cofre.', 'Apagar', () => cofresApagarAgora(id));
+}
+
 
 // ===================== EMPRÉSTIMOS =====================
 // Campos: who, note, total, installments (nº de parcelas), paid (parcelas pagas),
@@ -9192,7 +9205,7 @@ function empAbrir(id){
     <button class="btn btn-ghost" onclick="empAdiar('${id}')">Adiar parcela</button>
     <button class="btn btn-ghost" onclick="empParcelasAbrir('${id}')">Alterar parcelas</button>
     <button class="btn btn-ghost" onclick="empPagar('${id}','tudo')">Quitar tudo</button>
-    <button class="btn btn-ghost" onclick="empApagar('${id}')">Apagar empréstimo</button>`);
+    <button class="btn btn-danger-text" onclick="empApagar('${id}')">Apagar empréstimo</button>`);
 }
 
 // Núcleo de pagamento: aplica vários pagamentos de uma vez e devolve o valor aos cofres de origem
@@ -9254,7 +9267,6 @@ function empAtualizar(id, fn){
 function empAdiar(id){
   const l = empLista().find(x => x.id === id);
   if(!l || empRestante(l) <= 0.004){ showToast('Nada para adiar'); return; }
-  if(!confirm('Adiar uma parcela? A parcela é acrescentada no fim do plano.')) return;
   empAtualizar(id, x => { x.installments = (Number(x.installments) || 1) + 1; });
   closeSheet(); showToast('Parcela adiada');
 }
@@ -9304,8 +9316,7 @@ function empMultiConfirmar(){
   closeSheet(); showToast(`${ids.length} pagamento(s) registado(s)`);
 }
 
-function empApagar(id){
-  if(!confirm('Apagar este empréstimo? Se ainda faltava pagar, o valor em falta volta ao cofre de origem.')) return;
+function empApagarAgora(id){
   const l = empLista().find(x => x.id === id);
   const patch = {
     emprestimos: empLista().filter(x => x.id !== id),
@@ -9316,6 +9327,25 @@ function empApagar(id){
   }
   finGravar(patch);
   closeSheet(); showToast('Empréstimo apagado');
+}
+function empApagar(id){
+  openConfirmSheet('Apagar empréstimo?', 'Se ainda faltava pagar, o valor em falta volta ao cofre de origem.', 'Apagar', () => empApagarAgora(id));
+}
+
+
+function openConfirmSheet(titulo, texto, rotulo, acao){
+  window._confirmAcao = acao;
+  openSheet(`
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">${escapeHtml(titulo)}</div>
+    <div class="sheet-sub">${escapeHtml(texto)}</div>
+    <button class="btn btn-primary danger" onclick="confirmarAcao()">${escapeHtml(rotulo)}</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>`);
+}
+function confirmarAcao(){
+  const a = window._confirmAcao;
+  window._confirmAcao = null;
+  if(a) a();
 }
 
 let toastTimer = null;
