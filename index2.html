@@ -2042,7 +2042,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.200';
+const APP_VERSION = '0.201';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -8745,7 +8745,7 @@ function mesRender(){
 function mesRenderRendas(e){
   let html = e.mesRendas.length ? e.mesRendas.map(r => `
       <div class="bill-row">
-        <div class="bill-info"><div class="bill-name">${escapeHtml(r.who || 'Sem nome')}</div><div class="bill-sub">${escapeHtml(mesOrigemLabel(r.source))}</div></div>
+        <div class="bill-info"><div class="bill-name">${escapeHtml(r.who || 'Sem nome')}${r.uid && window.__fbUser && r.uid === window.__fbUser.uid ? ' (tu)' : ''}</div><div class="bill-sub">${escapeHtml(mesOrigemLabel(r.source))}</div></div>
         <div class="bill-amount-edit"><input class="bill-amount-input" type="number" inputmode="decimal" step="0.01"
           value="${(Number(r.amount) || 0).toFixed(2)}" onchange="mesAlterarRenda('${r.id}', this.value)" /></div>
         <div class="bill-delete" onclick="mesRemoverRenda('${r.id}')">✕</div>
@@ -8781,27 +8781,62 @@ function mesRenderResumo(e){
 }
 
 // ----- Rendas -----
-function mesAbrirRenda(){
+
+async function mesAbrirRenda(){
+  const eu = window.__fbUser;
+  let membros = [];
+  if(eu){
+    membros = [{ uid: eu.uid, name: eu.displayName || eu.email || 'Eu' }];
+    if(profile.grupoId){
+      try{
+        const info = await window.fbGrupoInfo(profile.grupoId);
+        if(info && info.members){
+          membros = info.members.map(u => {
+            const d = info.names && info.names[u];
+            const name = typeof d === 'string' ? d : ((d && d.name) || 'Participante');
+            return { uid: u, name };
+          });
+        }
+      }catch(e){ console.warn(e); }
+    }
+  }
+  const opcoes = membros.map(m => {
+    const tag = eu && m.uid === eu.uid ? ' (tu)' : '';
+    return `<option value="${escapeHtml(m.uid)}" data-nome="${escapeHtml(m.name)}">${escapeHtml(m.name)}${tag}</option>`;
+  }).join('');
   const origens = MES_ORIGENS.map(o => `<option value="${o.key}">${o.emoji} ${o.label}</option>`).join('');
-  const nomesUsados = [...new Set(Object.values(monthData).flatMap(m => (m.mesRendas || []).map(r => r.who)).filter(Boolean))];
-  const nomes = nomesUsados.map(n => `<option value="${escapeHtml(n)}">`).join('');
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-title">Nova renda</div>
-    <div class="field"><label>Quem ganhou</label><input type="text" id="mesRendaQuem" list="mesNomes" maxlength="30" placeholder="ex: Ana" /><datalist id="mesNomes">${nomes}</datalist></div>
+    <div class="field"><label>Quem ganhou</label>
+      <select id="mesRendaQuem">${opcoes}<option value="__outro">Outra pessoa…</option></select>
+    </div>
+    <div class="field" id="mesRendaOutroBox" style="display:${eu ? 'none' : 'block'};"><label>Nome</label><input type="text" id="mesRendaOutro" maxlength="30" placeholder="ex: Ana" /></div>
     <div class="field"><label>Origem</label><select id="mesRendaOrigem">${origens}</select></div>
     <div class="field"><label>Valor (€)</label><input type="number" id="mesRendaValor" inputmode="decimal" step="0.01" placeholder="0,00" /></div>
     <button class="btn btn-primary" onclick="mesSalvarRenda()">Guardar</button>
     <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>`);
+  const sel = document.getElementById('mesRendaQuem');
+  sel.onchange = () => {
+    document.getElementById('mesRendaOutroBox').style.display = sel.value === '__outro' ? 'block' : 'none';
+  };
 }
 function mesSalvarRenda(){
-  const who = document.getElementById('mesRendaQuem').value.trim();
-  const source = document.getElementById('mesRendaOrigem').value;
-  if(!who){ showToast('Diz quem ganhou'); return; }
-  const amount = parseFloat(document.getElementById('mesRendaValor').value);
-  if(!(amount > 0)){ showToast('Indica um valor válido'); return; }
+  const sel = document.getElementById('mesRendaQuem');
+  const origem = document.getElementById('mesRendaOrigem').value;
+  const valor = parseFloat(document.getElementById('mesRendaValor').value);
+  let quem, quemUid = null;
+  if(sel.value === '__outro'){
+    quem = document.getElementById('mesRendaOutro').value.trim();
+    if(!quem){ showToast('Diz quem ganhou'); return; }
+  } else {
+    const opt = sel.options[sel.selectedIndex];
+    quem = (opt && opt.dataset.nome) || 'Participante';
+    quemUid = sel.value;
+  }
+  if(!(valor > 0)){ showToast('Indica um valor válido'); return; }
   const e = mesEntry(currentMonthKey);
-  e.mesRendas.push({ id: uid(), who, source, amount });
+  e.mesRendas.push({ id: uid(), who: quem, uid: quemUid, source: origem, amount: valor });
   mesSalvar(); closeSheet(); mesRender(); showToast('Renda guardada');
 }
 function mesAlterarRenda(id, value){
