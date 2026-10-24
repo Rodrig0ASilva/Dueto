@@ -2097,6 +2097,10 @@ body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dar
       <div class="switch" id="devModeToggle" onclick="toggleDevMode()"></div>
     </div>
     <div id="devModePanel" style="display:none; margin-top:8px;">
+      <div class="section-head" style="margin-top:0;"><div class="section-title">🧪 Versão de teste</div></div>
+      <div class="section-sub" style="margin-bottom:10px;">Abre o index2.html só nesta sessão para testar. Ao reiniciar o app, volta ao index.html.</div>
+      <button class="btn btn-primary" onclick="testarIndex2()" id="btnAlternarVersao">Testar index2.html (temporário)</button>
+      <div style="height:16px;"></div>
       <div class="section-head" style="margin-top:4px;"><div class="section-title" style="font-size:15px;">Modo Dev ativo</div></div>
       <div class="loans-box padded" style="display:flex;flex-direction:column;gap:10px;">
         <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Uma barra flutuante <b>🛠️</b> aparece em todas as telas. Ela dá acesso rápido a editar cofres, transações, empréstimos e exportar dados. Toque nos valores nas telas para editar direto.</div>
@@ -2278,7 +2282,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.6.2';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.6.5';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 async function checkForUpdateOnBoot(){
   try{
@@ -3506,7 +3510,18 @@ function personAvatarInner(key, label){
   return photo ? '' : (label || '?').trim().charAt(0).toUpperCase();
 }
 
+
+// Modo Dev: testa o index2.html nesta sessão. Não salva nada: ao reiniciar,
+// o app volta ao index.html.
+function atualizarBotaoVersao(){
+  const b = document.getElementById('btnAlternarVersao'); if(!b) return;
+  b.textContent = 'Testar index2.html (temporário)';
+}
+function testarIndex2(){
+  location.href = new URL('index2.html', location.href).href;
+}
 function renderSettings(){
+  atualizarBotaoVersao();
   renderFbAccount();
   const swGlass = document.getElementById('swGlass');
   if(swGlass) swGlass.classList.toggle('on', localSettings.liquidGlass === true);
