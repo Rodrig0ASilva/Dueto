@@ -1003,6 +1003,22 @@ body.glass .sync-pill {
 body.glass.dark .sync-pill { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.14); }
 .btn-small { background: rgba(31,58,46,0.08); border: none; border-radius: var(--r-full); padding: 8px 14px; font-size: var(--text-xs); font-weight: 700; color: var(--vault-2); cursor: pointer; white-space: nowrap; }
 .btn-small:active { background: rgba(31,58,46,0.16); }
+.btn:disabled { opacity: 0.4; cursor: default; }
+/* Utilitários de espaçamento e estado */
+.u-mb-sm { margin-bottom: 6px; }
+.u-mt-md { margin-top: 14px; }
+.u-mt-lg { margin-top: 18px; }
+.u-my-md { margin: 10px 0; }
+.hidden { display: none !important; }
+.stat-card-value.lg { font-size: 24px; }
+.stat-card.wide { grid-column: 1 / -1; border-color: var(--vault); }
+.num-bold { font-weight: 700; font-variant-numeric: tabular-nums; }
+.num-bold.neg { color: var(--terracotta); }
+.check { width: 18px; height: 18px; }
+.pointer { cursor: pointer; }
+.upper { text-transform: uppercase; }
+.loans-box.padded { padding: 4px 14px; }
+.add-dashed-btn.solid { border-style: solid; }
 </style>
 </head>
 <body>
@@ -1297,7 +1313,7 @@ body.glass.dark .sync-pill { background: rgba(255,255,255,0.08); border-color: r
         <label>Nova URL de sincronização</label>
         <input type="text" id="migrationUrlInput" placeholder="https://script.google.com/macros/s/.../exec" />
       </div>
-      <button onclick="scheduleMigrationUrl()" style="width:100%;padding:13px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">🔄 Enviar URL de migração</button>
+      <button class="btn btn-primary" onclick="scheduleMigrationUrl()">🔄 Enviar URL de migração</button>
 
       <div class="section-head" style="margin-top:20px;"><div class="section-title">🔒 Encriptação dos dados sincronizados</div></div>
       <div class="switch-row" style="margin-bottom:8px;">
@@ -1308,7 +1324,7 @@ body.glass.dark .sync-pill { background: rgba(255,255,255,0.08); border-color: r
         <div class="switch" id="encryptionSwitch" onclick="toggleEncryption()"></div>
       </div>
       <div id="encryptionPasswordRow" style="display:none;">
-        <button onclick="changeEncryptionPassword()" style="width:100%;padding:11px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:600;font-size:13px;cursor:pointer;">🔑 Trocar senha de encriptação</button>
+        <button class="btn btn-ghost" onclick="changeEncryptionPassword()">🔑 Trocar senha de encriptação</button>
         <div class="switch-row" style="margin-top:14px;">
           <div class="switch-row-text">
             <div class="switch-row-title">Desbloquear com digital / Face ID</div>
@@ -1347,7 +1363,7 @@ body.glass.dark .sync-pill { background: rgba(255,255,255,0.08); border-color: r
       <div class="section-head" style="margin-top:20px;"><div class="section-title">📥 Importar dados</div></div>
       <div class="section-sub" style="margin-bottom:10px;">Se a sincronização automática não funcionar, cole aqui o JSON copiado do Google Sheets para importar os seus dados.</div>
       <textarea id="importJsonInput" placeholder='Cole o JSON aqui… {"bills":[…],"monthData":{…},"profile":{…}}' style="width:100%;min-height:90px;border:1.5px solid var(--line);border-radius:var(--r-md);padding:12px;font-size:12px;font-family:'JetBrains Mono',monospace;background:#fff;color:var(--ink);resize:vertical;" oninput="this.style.borderColor=''"></textarea>
-      <button onclick="importFromJson()" style="width:100%;margin-top:8px;padding:13px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">Importar dados</button>
+      <button class="btn btn-primary" onclick="importFromJson()">Importar dados</button>
 
       <div class="section-head" style="margin-top:20px;"><div class="section-title">🔄 Atualização</div></div>
       <div class="switch-row" style="margin-bottom:8px;">
@@ -1358,7 +1374,7 @@ body.glass.dark .sync-pill { background: rgba(255,255,255,0.08); border-color: r
         <div class="switch" id="holdUpdateSwitch" onclick="toggleHoldUpdate()"></div>
       </div>
       <div class="section-sub" style="margin-bottom:10px;">Versão atual: <strong id="devVersionLabel"></strong></div>
-      <button onclick="checkForUpdates()" id="checkUpdateBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;">🔍 Procurar atualização</button>
+      <button class="btn btn-ghost" onclick="checkForUpdates()" id="checkUpdateBtn">🔍 Procurar atualização</button>
       <div id="updateResult" style="margin-top:10px;font-size:13px;text-align:center;color:var(--text-muted);"></div>
 
       <div class="section-head" style="margin-top:20px;"><div class="section-title">🎂 Mensagem de aniversário</div></div>
@@ -1368,7 +1384,7 @@ body.glass.dark .sync-pill { background: rgba(255,255,255,0.08); border-color: r
         <input type="text" id="birthdayDateInput" placeholder="DD-MM (ex: 19-10) — vazio = desativado" inputmode="numeric" maxlength="5"
           onchange="setBirthdayDate(this.value)" />
       </div>
-      <button onclick="toggleForceBirthday()" id="forceBirthdayBtn" style="width:100%;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;"><span data-i18n="m_forcar_proxima">🎉 Forçar na próxima abertura</span></button>
+      <button class="btn btn-ghost" onclick="toggleForceBirthday()" id="forceBirthdayBtn"><span data-i18n="m_forcar_proxima">🎉 Forçar na próxima abertura</span></button>
 
       <div class="section-head" style="margin-top:20px;"><div class="section-title">👻 Brincadeira secreta</div></div>
       <div class="section-sub" style="margin-bottom:10px;">Desativada por padrão. Uma tela cômica de "hackeamento" que pode aparecer raramente ao abrir o app — só para o perfil com um nome específico, e só depois de ativada aqui. Sincronizado via nuvem.</div>
@@ -1384,7 +1400,7 @@ body.glass.dark .sync-pill { background: rgba(255,255,255,0.08); border-color: r
         <input type="number" id="easterEggRateInput" placeholder="3" inputmode="decimal" min="0" max="100" step="0.5"
           onchange="setEasterEggRate(this.value)" />
       </div>
-      <button onclick="toggleForceEasterEgg()" id="forceEasterEggBtn" style="width:100%;margin-top:8px;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;cursor:pointer;"><span data-i18n="m_forcar_proxima2">🎭 Forçar na próxima abertura</span></button>
+      <button class="btn btn-ghost" onclick="toggleForceEasterEgg()" id="forceEasterEggBtn"><span data-i18n="m_forcar_proxima2">🎭 Forçar na próxima abertura</span></button>
 
       <a href="https://github.com/Rodrig0ASilva" target="_blank" rel="noopener" style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:20px;padding:13px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:14px;text-decoration:none;">
         <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.21 11.39.6.11.82-.26.82-.58 0-.29-.01-1.04-.02-2.04-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.75.08-.73.08-.73 1.2.09 1.83 1.24 1.83 1.24 1.07 1.83 2.81 1.3 3.49.99.11-.78.42-1.3.76-1.6-2.67-.3-5.47-1.34-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.12-.3-.54-1.52.12-3.18 0 0 1.01-.32 3.3 1.23a11.5 11.5 0 0 1 6 0c2.29-1.55 3.3-1.23 3.3-1.23.66 1.66.24 2.88.12 3.18.77.84 1.24 1.91 1.24 3.22 0 4.6-2.81 5.63-5.48 5.92.43.37.81 1.1.81 2.22 0 1.61-.02 2.9-.02 3.29 0 .32.22.7.83.58C20.56 21.79 24 17.3 24 12c0-6.63-5.37-12-12-12z"/></svg>
@@ -2048,7 +2064,7 @@ const I18N = {
 // Esquema de versão: de volta ao pré-1.0 (0.x.x) — a v1.0.0 fica
 // reservada para o lançamento com assinatura paga completa. A numeração
 // 4.x.x usada temporariamente para a integração Firebase foi abandonada.
-const APP_VERSION = '0.203';
+const APP_VERSION = '0.205';
 
 // ---------------------------------------------------------------
 // IDIOMA — português (pt) e inglês (en). Escolha guardada neste aparelho (localSettings.lang).
@@ -2662,7 +2678,7 @@ function cripGuardarRisco(){
       <input type="checkbox" id="cripAceito" onchange="document.getElementById('cripContinuar').disabled = !this.checked" style="margin-top:3px;" />
       <span>${tr('m_li_aceito')}</span>
     </label>
-    <button class="btn btn-primary" id="cripContinuar" disabled onclick="cripIrSenha()" style="opacity:0.4;">Continuar</button>
+    <button class="btn btn-primary" id="cripContinuar" disabled onclick="cripIrSenha()">Continuar</button>
     <button class="btn btn-ghost" onclick="closeSheet()">${tr('cancelar')}</button>`;
 }
 async function openCriptografiaSheet(){
@@ -3369,8 +3385,8 @@ function openUnlockPasswordSheet(biometricFailed){
       <label>${tr('m_senha_encriptacao')}</label>
       <input type="password" id="unlockPasswordInput" placeholder="Digite a senha" onkeydown="if(event.key==='Enter') unlockWithPassword()" />
     </div>
-    <button onclick="unlockWithPassword()" style="width:100%;margin-top:6px;padding:14px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:15px;cursor:pointer;">${tr('m_desbloq_senha2')}</button>
-    ${biometricUnlockEnabled && webAuthnSupported() ? `<button onclick="triggerBiometricUnlockDirectly(); closeSheet();" style="width:100%;margin-top:10px;padding:12px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:600;font-size:13px;cursor:pointer;">${tr('m_tentar_bio')}</button>` : ''}
+    <button class="btn btn-primary" onclick="unlockWithPassword()">${tr('m_desbloq_senha2')}</button>
+    ${biometricUnlockEnabled && webAuthnSupported() ? `<button class="btn btn-ghost" onclick="triggerBiometricUnlockDirectly(); closeSheet();">${tr('m_tentar_bio')}</button>` : ''}
     <button onclick="cancelUnlock()" style="width:100%;margin-top:10px;padding:12px;border:none;background:none;color:var(--text-muted);font-weight:600;font-size:13px;cursor:pointer;">${tr('cancelar')}</button>
   `);
   setTimeout(()=>{ document.getElementById('unlockPasswordInput')?.focus(); }, 200);
@@ -5285,9 +5301,9 @@ function renderSettings(){
             <div style="flex:1;min-width:0;"><label style="${lbl}">${tr('m_nome')}</label>
               <input type="text" id="newTurnoName" maxlength="14" placeholder="ex: Almoço" class="theme-input" style="${inputStyle}" /></div>
           </div>
-          <button onclick="addTurno()" style="width:100%;margin-top:10px;padding:12px;border-radius:var(--r-md);border:none;background:var(--vault);color:#fff;font-weight:700;font-size:14px;cursor:pointer;">${tr('m_add_turno')}</button>
+          <button class="btn btn-primary" onclick="addTurno()">${tr('m_add_turno')}</button>
         </div>
-        <button onclick="restoreDefaultTurnos()" style="width:100%;margin-top:4px;padding:12px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--ink);font-weight:700;font-size:13px;cursor:pointer;">${tr('repor_turnos_btn')}</button>`;
+        <button class="btn btn-ghost" onclick="restoreDefaultTurnos()">${tr('repor_turnos_btn')}</button>`;
     } else {
       tnRow.innerHTML = '';
     }
@@ -8620,7 +8636,11 @@ function mesOuvirGrupo(){
 }
 async function renderGrupo(){
   const box = document.getElementById('grupoBox');
+  const cartaoConta = document.getElementById('profileCardsList');
   if(!box) return;
+  // Dentro de um grupo, a conta Google passa a fazer parte da lista de participantes (sem repetir o cartão)
+  const noGrupo = !!(window.__fbUser && profile.grupoId);
+  if(cartaoConta) cartaoConta.style.display = noGrupo ? 'none' : '';
   if(!window.__fbUser){
     box.innerHTML = '<div class="empty-note">Entra com a tua conta Google para criar ou entrar num grupo.</div>';
     return;
@@ -8630,16 +8650,16 @@ async function renderGrupo(){
       <div class="section-head"><div class="section-title">Criar grupo</div></div>
       <div class="field"><input type="text" id="grupoNovoNome" maxlength="40" placeholder="ex: Casa da Ana e do Pedro" /></div>
       <button class="btn btn-primary" onclick="grupoCriar()">Criar grupo</button>
-      <div class="section-head" style="margin-top:18px;"><div class="section-title">Entrar com código</div></div>
-      <div class="field"><input type="text" id="grupoCodigoEntrar" maxlength="8" placeholder="código de convite" style="text-transform:uppercase;" /></div>
+      <div class="section-head" class="u-mt-lg"><div class="section-title">Entrar com código</div></div>
+      <div class="field"><input type="text" id="grupoCodigoEntrar" maxlength="8" placeholder="código de convite" class="upper" /></div>
       <button class="btn btn-ghost" onclick="grupoEntrar()">Entrar</button>`;
     return;
   }
   box.innerHTML = `
     <div class="switch-row-title">${escapeHtml(profile.grupoNome || 'Grupo')}</div>
     <div class="switch-row-sub">Código de convite: <strong>${escapeHtml(profile.grupoCodigo || '')}</strong></div>
-    <div class="section-head" style="margin-top:14px;"><div class="section-title">Participantes</div></div>
-    <div class="loans-box" id="grupoMembros" style="padding:4px 14px;"><div class="empty-note">A carregar participantes…</div></div>
+    <div class="section-head" class="u-mt-md"><div class="section-title">Participantes</div></div>
+    <div class="loans-box" id="grupoMembros" class="padded"><div class="empty-note">A carregar participantes…</div></div>
     <button class="btn btn-ghost" onclick="grupoCopiarCodigo()">Copiar código</button>
     <button class="btn btn-danger-text" onclick="grupoSair()">Sair do grupo</button>`;
   try{
@@ -8649,18 +8669,33 @@ async function renderGrupo(){
     if(!el || !info) return;
     const nomes = info.names || {};
     const membros = info.members || [];
+    const minha = window.__fbUser;
+    const fotoDe = (dados) => dados.photo ? `background-image:url('${dados.photo}');background-size:cover;background-position:center;` : '';
     el.innerHTML = membros.length ? membros.map((uid, i) => {
-      const eu = uid === window.__fbUser.uid;
+      const eu = uid === minha.uid;
       const dados = typeof nomes[uid] === 'string' ? { name: nomes[uid] } : (nomes[uid] || {});
+      if(eu){
+        // A própria conta, reduzida, dentro dos participantes
+        const nome = dados.name || minha.displayName || minha.email || 'Tu';
+        const foto = dados.photo || minha.photoURL || null;
+        return `
+          <div class="bill-row">
+            <div class="income-avatar a" style="${foto ? `background-image:url('${foto}');background-size:cover;background-position:center;` : ''}">${foto ? '' : escapeHtml(nome.charAt(0).toUpperCase())}</div>
+            <div class="bill-info">
+              <div class="bill-name">${escapeHtml(nome)}</div>
+              <div class="bill-sub">Tu · conectado com Google</div>
+            </div>
+            <button class="btn-small" onclick="fbDoSignOut()">Sair</button>
+          </div>`;
+      }
       const nome = dados.name || 'Participante';
-      const foto = dados.photo ? `style="background-image:url('${dados.photo}');background-size:cover;background-position:center;"` : '';
       const inicial = dados.photo ? '' : escapeHtml(nome.charAt(0).toUpperCase());
       return `
         <div class="bill-row">
-          <div class="income-avatar ${i % 2 ? 'b' : 'a'}" ${foto}>${inicial}</div>
+          <div class="income-avatar ${i % 2 ? 'b' : 'a'}" style="${fotoDe(dados)}">${inicial}</div>
           <div class="bill-info">
             <div class="bill-name">${escapeHtml(nome)}</div>
-            <div class="bill-sub">${eu ? 'Tu' : 'Participante'}</div>
+            <div class="bill-sub">Participante</div>
           </div>
         </div>`;
     }).join('') : '<div class="empty-note">Sem participantes.</div>';
@@ -8761,7 +8796,7 @@ function mesRenderRendas(e){
         <div class="bill-delete" onclick="mesRemoverRenda('${r.id}')">✕</div>
       </div>`).join('')
     : '<div class="empty-note">Nenhuma renda registada para este mês.</div>';
-  html += `<div class="add-dashed-btn" style="border-style:solid;margin:10px 0;" onclick="mesAbrirRenda()">＋ ${e.mesRendas.length ? 'Adicionar renda' : 'Inserir dinheiro do mês'}</div>`;
+  html += `<div class="add-dashed-btn" class="solid u-my-md" onclick="mesAbrirRenda()">＋ ${e.mesRendas.length ? 'Adicionar renda' : 'Inserir dinheiro do mês'}</div>`;
   document.getElementById('mesRendas').innerHTML = html;
 }
 function mesRenderContas(e){
@@ -8784,9 +8819,9 @@ function mesRenderResumo(e){
   document.getElementById('mesResumo').innerHTML = `
     <div class="stat-card"><div class="stat-card-label">Entrou</div><div class="stat-card-value">${fmt(entrou)}</div></div>
     <div class="stat-card"><div class="stat-card-label">Contas</div><div class="stat-card-value negative">− ${fmt(contas)}</div></div>
-    <div class="stat-card" style="border-color:var(--vault);grid-column:1/-1;">
+    <div class="stat-card" class="wide">
       <div class="stat-card-label">Resta no mês</div>
-      <div class="stat-card-value ${resta < 0 ? 'negative' : ''}" style="font-size:24px;">${fmt(resta)}</div>
+      <div class="stat-card-value ${resta < 0 ? 'negative' : ''}" class="lg">${fmt(resta)}</div>
     </div>`;
 }
 
@@ -8821,14 +8856,14 @@ async function mesAbrirRenda(){
     <div class="field"><label>Quem ganhou</label>
       <select id="mesRendaQuem">${opcoes}<option value="__outro">Outra pessoa…</option></select>
     </div>
-    <div class="field" id="mesRendaOutroBox" style="display:${eu ? 'none' : 'block'};"><label>Nome</label><input type="text" id="mesRendaOutro" maxlength="30" placeholder="ex: Ana" /></div>
+    <div class="field${eu ? ' hidden' : ''}" id="mesRendaOutroBox"><label>Nome</label><input type="text" id="mesRendaOutro" maxlength="30" placeholder="ex: Ana" /></div>
     <div class="field"><label>Origem</label><select id="mesRendaOrigem">${origens}</select></div>
     <div class="field"><label>Valor (€)</label><input type="number" id="mesRendaValor" inputmode="decimal" step="0.01" placeholder="0,00" /></div>
     <button class="btn btn-primary" onclick="mesSalvarRenda()">Guardar</button>
     <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>`);
   const sel = document.getElementById('mesRendaQuem');
   sel.onchange = () => {
-    document.getElementById('mesRendaOutroBox').style.display = sel.value === '__outro' ? 'block' : 'none';
+    document.getElementById('mesRendaOutroBox').classList.toggle('hidden', sel.value !== '__outro');
   };
 }
 function mesSalvarRenda(){
@@ -8981,7 +9016,7 @@ function renderCofres(){
           <div class="bill-sub">${escapeHtml(metaTxt)}</div>
           ${temMeta ? cofBarra(pct) : ''}
         </div>
-        <div style="font-weight:700;font-variant-numeric:tabular-nums;${saldo < 0 ? 'color:var(--terracotta)' : ''}">${fmt(saldo)}</div>
+        <div class="num-bold ${saldo < 0 ? 'neg' : ''}">${fmt(saldo)}</div>
       </div>`;
   }).join('') : '<div class="empty-note">Ainda não tens cofres. Cria o primeiro.</div>';
 
@@ -9029,8 +9064,8 @@ function cofresAbrir(id){
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-title">${escapeHtml(v.emoji)} ${escapeHtml(v.name)}</div>
-    <div class="section-sub" style="margin-bottom:6px;">${metaTxt}</div>
-    <div class="stat-card" style="margin-bottom:6px;"><div class="stat-card-label">Saldo</div><div class="stat-card-value ${saldo < 0 ? 'negative' : ''}">${fmt(saldo)}</div></div>
+    <div class="section-sub" class="u-mb-sm">${metaTxt}</div>
+    <div class="stat-card" class="u-mb-sm"><div class="stat-card-label">Saldo</div><div class="stat-card-value ${saldo < 0 ? 'negative' : ''}">${fmt(saldo)}</div></div>
     <div class="field"><label>Valor (€)</label><input type="number" id="cofreValor" inputmode="decimal" step="0.01" placeholder="0,00" /></div>
     <div class="field"><label>Nota (opcional)</label><input type="text" id="cofreNota" maxlength="40" /></div>
     <button class="btn btn-primary" onclick="cofresMovimento('${id}','in')">Depositar</button>
@@ -9142,7 +9177,7 @@ function renderEmprestimos(){
           <div class="bill-sub">${l.note && l.who ? escapeHtml(l.note) + ' · ' : ''}${l.paid}/${l.installments} parcelas · ${fmt(empParcela(l))} por parcela${v ? ' · do cofre ' + escapeHtml(v.name) : ''}</div>
           ${cofBarra(pct)}
         </div>
-        <div style="font-weight:700;font-variant-numeric:tabular-nums;">${fmt(empRestante(l))}</div>
+        <div class="num-bold">${fmt(empRestante(l))}</div>
       </div>`;
   }).join('') : '<div class="empty-note">Nenhum empréstimo em aberto.</div>';
 
@@ -9197,9 +9232,9 @@ function empAbrir(id){
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-title">${escapeHtml(empTitulo(l))}</div>
-    <div class="section-sub" style="margin-bottom:6px;">${l.note && l.who ? escapeHtml(l.note) + ' · ' : ''}${l.paid}/${l.installments} parcelas · ${fmt(empParcela(l))} por parcela</div>
-    ${v ? `<div class="section-sub" style="margin-bottom:6px;">Do cofre ${escapeHtml(v.emoji)} ${escapeHtml(v.name)} · os pagamentos voltam ao cofre</div>` : ''}
-    <div class="stat-card" style="margin-bottom:6px;"><div class="stat-card-label">Restante</div><div class="stat-card-value">${fmt(empRestante(l))}</div></div>
+    <div class="section-sub" class="u-mb-sm">${l.note && l.who ? escapeHtml(l.note) + ' · ' : ''}${l.paid}/${l.installments} parcelas · ${fmt(empParcela(l))} por parcela</div>
+    ${v ? `<div class="section-sub" class="u-mb-sm">Do cofre ${escapeHtml(v.emoji)} ${escapeHtml(v.name)} · os pagamentos voltam ao cofre</div>` : ''}
+    <div class="stat-card" class="u-mb-sm"><div class="stat-card-label">Restante</div><div class="stat-card-value">${fmt(empRestante(l))}</div></div>
     <button class="btn btn-primary" onclick="empPagar('${id}','parcela')">Registar parcela</button>
     <button class="btn btn-ghost" onclick="empAdiantarAbrir('${id}')">Adiantar pagamento</button>
     <button class="btn btn-ghost" onclick="empAdiar('${id}')">Adiar parcela</button>
@@ -9245,7 +9280,7 @@ function empAdiantarAbrir(id){
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-title">Adiantar pagamento</div>
-    <div class="section-sub" style="margin-bottom:6px;">As parcelas restantes diminuem. Restante: ${fmt(empRestante(l))}</div>
+    <div class="section-sub" class="u-mb-sm">As parcelas restantes diminuem. Restante: ${fmt(empRestante(l))}</div>
     <div class="field"><label>Valor a adiantar (€)</label><input type="number" id="empAdiantarValor" inputmode="decimal" step="0.01" placeholder="0,00" /></div>
     <button class="btn btn-primary" onclick="empAdiantarConfirmar('${id}')">Adiantar</button>
     <button class="btn btn-ghost" onclick="empAbrir('${id}')">Voltar</button>`);
@@ -9276,7 +9311,7 @@ function empParcelasAbrir(id){
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-title">Alterar parcelas</div>
-    <div class="section-sub" style="margin-bottom:6px;">Já pagas: ${l.paid}. O mínimo é ${(Number(l.paid) || 0) + 1}.</div>
+    <div class="section-sub" class="u-mb-sm">Já pagas: ${l.paid}. O mínimo é ${(Number(l.paid) || 0) + 1}.</div>
     <div class="field"><label>Nº total de parcelas</label><input type="number" id="empNovasParcelas" inputmode="numeric" min="${(Number(l.paid) || 0) + 1}" value="${l.installments}" /></div>
     <button class="btn btn-primary" onclick="empParcelasConfirmar('${id}')">Guardar</button>
     <button class="btn btn-ghost" onclick="empAbrir('${id}')">Voltar</button>`);
@@ -9295,10 +9330,10 @@ function empMultiAbrir(){
   openSheet(`
     <div class="sheet-handle"></div>
     <div class="sheet-title">Pagar várias</div>
-    <div class="section-sub" style="margin-bottom:8px;">Marca os empréstimos. Cada um paga a parcela atual.</div>
-    <div class="loans-box" style="padding:4px 14px;">${abertos.map(l => `
-      <label class="bill-row" style="cursor:pointer;">
-        <input type="checkbox" class="emp-multi" value="${l.id}" style="width:18px;height:18px;" />
+    <div class="section-sub" class="u-mb-sm">Marca os empréstimos. Cada um paga a parcela atual.</div>
+    <div class="loans-box" class="padded">${abertos.map(l => `
+      <label class="bill-row" class="pointer">
+        <input type="checkbox" class="emp-multi" value="${l.id}" class="check" />
         <div class="bill-info"><div class="bill-name">${escapeHtml(empTitulo(l))}</div><div class="bill-sub">Parcela ${fmt(empParcela(l))}</div></div>
         <div class="bill-amount-edit">${fmt(empRestante(l))}</div>
       </label>`).join('')}</div>
