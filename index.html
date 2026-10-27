@@ -1634,7 +1634,7 @@ html.soft-change, html.soft-change * {
 #app.fade-out, .tabbar.fade-out { opacity: 0; }
 body.glass .tabbar-inner { background: rgba(255,255,255, min(0.97, calc(0.28 * var(--gl-k)))); backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); -webkit-backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); }
 body.glass.dark .tabbar-inner { background: rgba(40,40,52, min(0.97, calc(0.38 * var(--gl-k)))); }
-body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact { background: rgba(255,255,255, min(0.97, calc(0.5 * var(--gl-k)))); backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); -webkit-backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); }
+body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact { background: rgba(255,255,255, min(0.97, calc(0.5 * var(--gl-k)))); backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); -webkit-backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); }
 body.glass.dark .stat-card, body.glass.dark .chart-box, body.glass.dark .profile-card, body.glass.dark .income-row-compact { background: rgba(30,30,40, min(0.97, calc(0.5 * var(--gl-k)))); }
 body.glass .sheet { background: rgba(246,239,226, min(0.98, calc(0.82 * var(--gl-k)))); backdrop-filter: blur(calc(30px * var(--gl-b))) saturate(170%); -webkit-backdrop-filter: blur(calc(30px * var(--gl-b))) saturate(170%); }
 body.glass.dark .sheet { background: rgba(26,26,33, min(0.98, calc(0.82 * var(--gl-k)))); }
@@ -1755,7 +1755,7 @@ body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.gla
 body.glass.dark .stat-card, body.glass.dark .chart-box, body.glass.dark .profile-card, body.glass.dark .income-row-compact { background: rgba(30,30,40,0.5); border-color: rgba(255,255,255,0.1); }
 body.glass .sheet { background: rgba(246,239,226,0.82); backdrop-filter: blur(30px) saturate(170%); -webkit-backdrop-filter: blur(30px) saturate(170%); box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 -8px 40px rgba(20,16,12,0.18); }
 body.glass.dark .sheet { background: rgba(26,26,33,0.82); box-shadow: inset 0 1px 0 rgba(255,255,255,0.1), 0 -8px 40px rgba(0,0,0,0.5); }
-body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact { background: rgba(255,255,255, min(0.97, calc(0.5 * var(--gl-k)))); backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); -webkit-backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); }
+body.glass .stat-card, body.glass .chart-box, body.glass .profile-card, body.glass .income-row-compact { background: rgba(255,255,255, min(0.97, calc(0.5 * var(--gl-k)))); backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); -webkit-backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); }
 body.glass.dark .stat-card, body.glass.dark .chart-box, body.glass.dark .profile-card, body.glass.dark .income-row-compact { background: rgba(30,30,40, min(0.97, calc(0.5 * var(--gl-k)))); }
 body.glass .sheet { background: rgba(246,239,226, min(0.98, calc(0.82 * var(--gl-k)))); backdrop-filter: blur(calc(30px * var(--gl-b))) saturate(170%); -webkit-backdrop-filter: blur(calc(30px * var(--gl-b))) saturate(170%); }
 body.glass.dark .sheet { background: rgba(26,26,33, min(0.98, calc(0.82 * var(--gl-k)))); }
@@ -1768,8 +1768,41 @@ body.dark #app::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.22); ba
 body.glass .sheet { background: rgba(246,239,226, min(0.97, calc(0.96 * var(--gl-k)))); }
 body.glass.dark .sheet { background: rgba(26,26,33, min(0.97, calc(0.96 * var(--gl-k)))); }
 /* ── Balões com vidro (Corrida+ 0.167): todos os cartões translúcidos no efeito transparente ── */
-body.glass .source-balance-chip, body.glass .loans-box, body.glass .add-dashed-btn, body.glass .add-profile-btn, body.glass .month-nav-btn, body.glass .installment-preview, body.glass .split-row, body.glass .action-btn, body.glass .source-breakdown-item, body.glass .menu-item, body.glass .bill-amount-input, body.glass .profile-card { background: rgba(255,255,255, calc(0.5 * var(--gl-k))); -webkit-backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); backdrop-filter: blur(calc(18px * var(--gl-b))) saturate(160%); border-color: rgba(255,255,255,0.6); box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 6px 20px rgba(20,16,12,0.08); }
+body.glass .source-balance-chip, body.glass .loans-box, body.glass .add-dashed-btn, body.glass .add-profile-btn, body.glass .month-nav-btn, body.glass .installment-preview, body.glass .split-row, body.glass .action-btn, body.glass .source-breakdown-item, body.glass .menu-item, body.glass .bill-amount-input, body.glass .profile-card { background: rgba(255,255,255, calc(0.5 * var(--gl-k))); -webkit-backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); border-color: rgba(255,255,255,0.6); box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 6px 20px rgba(20,16,12,0.08); }
 body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dark .add-dashed-btn, body.glass.dark .add-profile-btn, body.glass.dark .month-nav-btn, body.glass.dark .installment-preview, body.glass.dark .split-row, body.glass.dark .action-btn, body.glass.dark .source-breakdown-item, body.glass.dark .menu-item, body.glass.dark .bill-amount-input, body.glass.dark .profile-card { background: rgba(30,30,40, calc(0.5 * var(--gl-k))); border-color: rgba(255,255,255,0.1); }
+</style>
+<script>
+// Aplica tema e modo escuro antes da primeira pintura (evita o flash de cor errada)
+(function(){
+  try{
+    var s = JSON.parse(localStorage.getItem('localSettings') || 'null') || {};
+    var T = {
+      green:{v:'#1F3A2E',v2:'#2C4F3D',vl:'#3E6650',b:'#B8862B',bl:'#D9A949'},
+      blue:{v:'#1A2E4A',v2:'#243D63',vl:'#2E5075',b:'#4A90C4',bl:'#6AAFD4'},
+      purple:{v:'#2D1F4A',v2:'#3D2C6A',vl:'#5040A0',b:'#9B6FC4',bl:'#B890D4'},
+      terracotta:{v:'#4A2010',v2:'#6A2E18',vl:'#8B4020',b:'#C4803A',bl:'#D4A060'},
+      slate:{v:'#1A2535',v2:'#243050',vl:'#2E4060',b:'#7090B0',bl:'#90B0C8'}
+    };
+    var t = T[s.themeColor || 'green'] || T.green;
+    var r = document.documentElement.style;
+    r.setProperty('--vault', t.v); r.setProperty('--vault-2', t.v2); r.setProperty('--vault-light', t.vl);
+    r.setProperty('--brass', t.b); r.setProperty('--brass-light', t.bl);
+    var dark = s.darkMode === 'dark' || (s.darkMode !== 'light' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+    document.documentElement.style.background = dark ? '#16161B' : '#F6EFE2';
+    if(dark) document.documentElement.classList.add('pre-dark');
+  }catch(e){}
+})();
+</script>
+<style>
+/* Splash: barra de progresso indeterminada */
+.splash-bar { height:100%; width:40%; background: var(--vault-light); border-radius:3px; animation: splashInd 1.1s ease-in-out infinite; }
+@keyframes splashInd { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+/* Configurações: títulos de grupo discretos */
+#screen-settings .section-head .section-title { font-size:11px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color: var(--text-muted); }
+/* Zona de perigo: separador tracejado */
+.delete-all-btn { border-top: 2px dashed rgba(168,83,63,0.45); border-radius:0; padding-top:18px; }
+/* Modo Dev: fonte mono */
+#devModePanel { font-family: 'JetBrains Mono', ui-monospace, monospace; }
 </style>
 </head>
 <body>
@@ -2089,7 +2122,7 @@ body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dar
     <!-- Fix 5: Dev Mode toggle — hidden power-user mode for editing any data directly.
          Fix 6: App version number — bump APP_VERSION in JS when updating the code. -->
     <div class="section-head" style="margin-top:24px;"><div class="section-title">Desenvolvedor</div></div>
-    <div class="switch-row">
+    <div class="switch-row" id="devSwitchRow" style="display:none;">
       <div class="switch-row-text">
         <div class="switch-row-title">Modo Dev 🛠️</div>
         <div class="switch-row-sub">Permite editar saldos diretamente, apagar transações individuais e forçar valores. Use com cuidado.</div>
@@ -2143,7 +2176,7 @@ body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dar
     </div>
     <div style="text-align:center; margin-top:24px; margin-bottom:4px; font-size:11px; color:var(--text-faint);">
       <!-- Fix 6: Version string — update APP_VERSION constant in JS when modifying the code -->
-      Dueto v<span id="appVersionLabel"></span>
+      <span onclick="tapVersion()" style="cursor:default;user-select:none;">Dueto v<span id="appVersionLabel"></span></span>
     </div>
   </div>
 
@@ -2189,7 +2222,7 @@ body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dar
     radial-gradient(circle at 100% 0%, var(--splash-glow-1, rgba(184,134,43,0.07)), transparent 45%),
     radial-gradient(circle at 0% 100%, var(--splash-glow-2, rgba(31,58,46,0.06)), transparent 40%);
   transition: background 0.3s;
-">  <div id="splashIcon" style="width:62px;height:62px;border-radius:16px;background:linear-gradient(155deg,var(--vault-light),var(--vault));display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.25);">
+">  <div id="splashIcon" style="width:62px;height:62px;border-radius:16px;background:linear-gradient(155deg,var(--vault-light),var(--vault));display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.25);filter:grayscale(1);transition:filter .9s ease;">
     <svg viewBox="0 0 64 64" width="40" height="36" xmlns="http://www.w3.org/2000/svg">
       <circle cx="22" cy="32" r="11" fill="none" stroke="#D9A949" stroke-width="3.5"/>
       <circle cx="42" cy="32" r="11" fill="none" stroke="#F6EFE2" stroke-width="3.5" opacity=".85"/>
@@ -2197,6 +2230,7 @@ body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dar
   </div>
   <div class="splash-title" style="font-family:'Fraunces',serif;font-weight:600;font-size:26px;color:var(--vault);letter-spacing:-0.01em;">Dueto</div>
   <div id="splashVersion" style="font-size:11px;color:var(--text-faint);margin-top:-10px;"></div>
+  <div style="width:140px;height:3px;background:rgba(127,127,127,0.18);overflow:hidden;border-radius:3px;"><div class="splash-bar"></div></div>
   <div style="display:flex;gap:7px;align-items:center;">
     <div style="width:7px;height:7px;border-radius:50%;background:var(--vault-light);animation:splashDot 1.2s ease-in-out infinite;"></div>
     <div style="width:7px;height:7px;border-radius:50%;background:var(--vault-light);animation:splashDot 1.2s ease-in-out 0.2s infinite;"></div>
@@ -2282,7 +2316,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.6.5';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.7.2';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 async function checkForUpdateOnBoot(){
   try{
@@ -2550,6 +2584,100 @@ async function loadFromLocalStorage(){
   try{ const st = await window.storage.get('appSettings'); appSettings = st ? { extraProfiles:[], ...JSON.parse(st.value) } : { extraProfiles:[] }; }catch(e){ appSettings = { extraProfiles:[] }; }
 }
 
+// Fusão a 3 vias com lápides (ver DOCUMENTACAO: sincronização)
+const MERGE = (() => {
+// Fusão a 3 vias: base (última versão sincronizada), local e remoto.
+function canon(x){
+  if(Array.isArray(x)) return '['+x.map(canon).join(',')+']';
+  if(x && typeof x==='object') return '{'+Object.keys(x).sort().map(k=>JSON.stringify(k)+':'+canon(x[k])).join(',')+'}';
+  return JSON.stringify(x===undefined?null:x);
+}
+const same=(a,b)=>canon(a)===canon(b);
+const isPlainObj=x=>x&&typeof x==='object'&&!Array.isArray(x);
+// Regra de folha: se só um lado mudou, vale o que mudou; se os dois mudaram, vence o local.
+function leaf(b,l,r){
+  if(l===undefined && r===undefined) return undefined;
+  if(l===undefined) return same(r,b) ? undefined : r;   // apagado local: só mantém se o remoto editou
+  if(r===undefined) return same(l,b) ? undefined : l;   // apagado remoto: só mantém se o local editou
+  const lc=!same(l,b), rc=!same(r,b);
+  if(lc) return l;
+  if(rc) return r;
+  return l;
+}
+// Objetos (dicionários por ID, meses, perfis): recursivo, campo a campo.
+function mergeTree(b,l,r){
+  // Presença do item inteiro primeiro: apagado de um lado decide pelo objeto todo
+  if(l===undefined || r===undefined) return leaf(b,l,r);
+  if(isPlainObj(b)||isPlainObj(l)||isPlainObj(r)){
+    const B=isPlainObj(b)?b:{}, L=isPlainObj(l)?l:{}, R=isPlainObj(r)?r:{};
+    const out={};
+    for(const k of new Set([...Object.keys(B),...Object.keys(L),...Object.keys(R)])){
+      const v=mergeTree(B[k],L[k],R[k]);
+      if(v!==undefined) out[k]=v;
+    }
+    return out;
+  }
+  return leaf(b,l,r);
+}
+// Lápides: IDs apagados localmente vencem, mesmo que a nuvem ainda tenha o item.
+function dropTombs(dict, ids){
+  if(!dict || !ids || !ids.length) return dict;
+  const out={...dict}; ids.forEach(id=>{ delete out[id]; }); return out;
+}
+// Payload completo (formato dicionário por ID).
+function mergePayload(base, local, remote, tombs){
+  base=base||{}; remote=remote||{};
+  const out={};
+  for(const k of ['vaults','txns','loans','bills','monthData','names','appSettings']){
+    out[k]=mergeTree(base[k], local[k], remote[k]);
+  }
+  const t=tombs||{};
+  out.vaults=dropTombs(out.vaults,t.vaults);
+  out.txns=dropTombs(out.txns,t.txns);
+  out.loans=dropTombs(out.loans,t.loans);
+  out.bills=dropTombs(out.bills,t.bills);
+  out.schemaVersion=local.schemaVersion||remote.schemaVersion;
+  return out;
+}
+
+
+return { canon, mergePayload };
+})();
+
+// Estado de sincronização (só deste aparelho): base da última versão sincronizada e lápides
+let tombs = { vaults:[], txns:[], loans:[], bills:[] };
+let syncBase = null;
+async function loadSyncState(){
+  try{ const t = await window.storage.get('deletedIds'); tombs = JSON.parse(t.value) || tombs; }catch(e){}
+  try{ const b = await window.storage.get('syncBase'); syncBase = JSON.parse(b.value) || null; }catch(e){}
+}
+function markDeleted(kind, ids){
+  (ids||[]).forEach(id => { if(id && !tombs[kind].includes(id)) tombs[kind].push(id); });
+  window.storage.set('deletedIds', JSON.stringify(tombs)).catch(()=>{});
+}
+async function saveSyncBase(p){
+  syncBase = p;
+  try{ await window.storage.set('syncBase', JSON.stringify(p)); }catch(e){}
+}
+// Dados vindos da nuvem em qualquer formato (dicionário ou array antigo)
+function normalizeRemote(d){
+  if(!d || typeof d !== 'object') return {};
+  return { schemaVersion: d.schemaVersion || 2,
+    vaults: arrToDict(dictToArr(d.vaults)), txns: arrToDict(dictToArr(d.txns)),
+    loans: arrToDict(dictToArr(d.loans)), bills: arrToDict(dictToArr(d.bills)),
+    monthData: d.monthData || {}, names: d.names || {}, appSettings: d.appSettings || {} };
+}
+// Funde o local com o remoto e aplica o resultado no app
+async function fundirEAplicar(remoteRaw){
+  const remote = normalizeRemote(remoteRaw);
+  const merged = MERGE.mergePayload(syncBase || {}, buildCloudPayload(), remote, tombs);
+  applyCloudData(merged);
+  if(pruneOrphanedBillData()) await persistMonthData();
+  await persistLocalOnlySilently();
+  renderAll(); renderMonth();
+  return merged;
+}
+
 function applyCloudData(data){
   vaults    = dictToArr(data.vaults);
   txns      = dictToArr(data.txns);
@@ -2572,12 +2700,25 @@ async function persistLocalOnlySilently(){
   try{ await window.storage.set('localSettings', JSON.stringify(localSettings)); }catch(e){}
 }
 
+// Troca de mensagem com fade e token: uma mensagem antiga nunca sobrescreve a nova
+window.__loadTok = 0;
+function trocarTextoLoading(msg){
+  const el = document.getElementById('loadingState'); if(!el) return;
+  const tok = ++window.__loadTok;
+  el.style.transition = 'opacity .25s ease'; el.style.opacity = '0';
+  setTimeout(() => {
+    if(tok !== window.__loadTok) return;
+    el.textContent = msg; el.style.opacity = '1';
+  }, 250);
+}
 function showLoadingState(msg){
   const el = document.getElementById('loadingState');
-  el.textContent = msg;
   el.style.display = '';
+  if(el.textContent && el.textContent !== msg) trocarTextoLoading(msg); else el.textContent = msg;
 }
 function hideLoadingState(){
+  const si = document.getElementById('splashIcon');
+  if(si) si.style.filter = 'none'; // ícone passa do cinza para a cor quando os dados chegam
   document.getElementById('loadingState').style.display = 'none';
   const splash = document.getElementById('splashScreen');
   if(splash){ splash.classList.add('hide'); setTimeout(()=>splash.remove(), 400); }
@@ -2637,6 +2778,7 @@ function pruneOrphanedBillData(){
 
 async function loadAll(manual = false){
   await loadLocalOnlySettings();
+  await loadSyncState();
 
   applyAllAppearance();
 
@@ -2754,9 +2896,15 @@ function scheduleCloudPush(){
 }
 
 async function pushToCloud(){
-  if(fbActive()){ await fbPushState(buildCloudPayload()); return; }
+  if(fbActive()){ await fbPushState(); return; }
   if(!syncUrl) return;
-  const payload = buildCloudPayload();
+  let payload = buildCloudPayload();
+  if(!(encryptionEnabled && encryptionPassword)){
+    try{
+      const r = await fetch(syncUrl, { method:'GET' });
+      if(r.ok){ const rem = await r.json(); if(rem && !rem.encrypted && rem.vaults !== undefined) payload = await fundirEAplicar(rem); }
+    }catch(e){}
+  }
   let body;
   try{
     body = (encryptionEnabled && encryptionPassword)
@@ -3521,6 +3669,8 @@ function testarIndex2(){
   location.href = new URL('index2.html', location.href).href;
 }
 function renderSettings(){
+  const dRow = document.getElementById('devSwitchRow');
+  if(dRow) dRow.style.display = (localSettings && (localSettings.devUnlocked || localSettings.devMode)) ? '' : 'none';
   atualizarBotaoVersao();
   renderFbAccount();
   const swGlass = document.getElementById('swGlass');
@@ -3858,20 +4008,27 @@ function fbActive(){ return !!(window.fb && window.fb.user && localSettings.fbHi
 function fbStartListening(){
   if(!fbActive()) return;
   window.fb.listen(localSettings.fbHid, async (data, meta) => {
-    if(meta.pending || meta.by === window.fb.user.uid) return; // ignora o que eu mesmo enviei
-    applyCloudData(data);
-    await persistLocalOnlySilently();
-    renderAll(); renderMonth();
+    if(meta.pending) return;
+    if(meta.by === window.fb.user.uid){ await saveSyncBase(normalizeRemote(data)); return; }
+    const merged = await fundirEAplicar(data);
+    if(MERGE.canon(merged) !== MERGE.canon(normalizeRemote(data))){
+      await window.fb.push(localSettings.fbHid, merged);
+    }
+    await saveSyncBase(merged);
     setSyncStatus('synced');
+
   });
 }
-async function fbPushState(payload){
+async function fbPushState(){
   if(!fbActive()) return;
   try{
-    await window.fb.push(localSettings.fbHid, payload);
+    const remote = await window.fb.getState(localSettings.fbHid);
+    const merged = await fundirEAplicar(remote && remote.data ? remote.data : null);
+    await window.fb.push(localSettings.fbHid, merged);
+    await saveSyncBase(merged);
     localStorage.removeItem(PENDING_PUSH_KEY);
     setSyncStatus('synced');
-    logSyncEvent('success', 'Dados enviados (Firebase)', '');
+    logSyncEvent('success', 'Dados fundidos e enviados (Firebase)', '');
   }catch(e){
     setSyncStatus('nolink');
     logSyncEvent('error', 'Firebase: ' + (e.message || e), '');
@@ -4219,6 +4376,22 @@ async function confirmResetAll(){
   showToast('Tudo apagado'); goHome();
 }
 
+// Desbloqueio secreto: 5 toques rápidos na versão revelam (ou escondem) a opção do Modo Dev
+let devTapCount = 0, devTapTimer = null;
+async function tapVersion(){
+  clearTimeout(devTapTimer);
+  devTapCount++;
+  if(devTapCount >= 5){
+    devTapCount = 0;
+    localSettings.devUnlocked = !localSettings.devUnlocked;
+    if(!localSettings.devUnlocked){ localSettings.devMode = false; }
+    await persistLocalSettings();
+    renderSettings();
+    showToast(localSettings.devUnlocked ? '🛠️ Modo Dev revelado' : 'Modo Dev escondido');
+    return;
+  }
+  devTapTimer = setTimeout(() => { devTapCount = 0; }, 1500);
+}
 async function toggleDevMode(){
   localSettings.devMode = !localSettings.devMode;
   await persistLocalSettings();
@@ -4286,6 +4459,7 @@ async function devDeleteSelectedTxns(){
   const ids = Array.from(document.querySelectorAll('.dev-txn-check.checked')).map(c=>c.dataset.id);
   if(ids.length === 0){ showToast('Nenhuma selecionada'); return; }
   if(!confirm(`Apagar ${ids.length} transação(ões)? Isso não ajusta saldos automaticamente.`)) return;
+  markDeleted('txns', ids);
   txns = txns.filter(t=>!ids.includes(t.id));
   await persistTxns(); closeSheet(); showToast(`${ids.length} transação(ões) apagada(s)`); renderAll();
 }
@@ -5056,6 +5230,9 @@ function confirmDeleteVaultSheet(){
 }
 async function deleteVaultConfirmed(){
   const v = vaults.find(x=>x.id===currentVaultId); if(!v) return;
+  markDeleted('vaults',[v.id]);
+  markDeleted('txns', txns.filter(t=>t.vaultId===v.id).map(t=>t.id));
+  markDeleted('loans', loans.filter(l=>l.vaultId===v.id).map(l=>l.id));
   vaults = vaults.filter(x=>x.id!==v.id);
   txns   = txns.filter(t=>t.vaultId!==v.id);
   loans  = loans.filter(l=>l.vaultId!==v.id);
@@ -5602,6 +5779,8 @@ async function devPurgeBillFromMonth(billId, monthKey){
   const name = b ? b.name : billId;
   if(!confirm(`Apagar "${name}" permanentemente?\n\nEla será removida de todos os meses, não só de ${monthLabelFor(monthKey)}.`)) return;
 
+  markDeleted('bills',[billId]);
+  markDeleted('txns', txns.filter(t=>t.billId===billId).map(t=>t.id));
   bills = bills.filter(x => x.id !== billId);
   Object.values(monthData).forEach(me => {
     if(me.hiddenBills)   delete me.hiddenBills[billId];
@@ -5624,7 +5803,9 @@ async function devPurgeAllHidden(){
   if(!confirm(`Apagar permanentemente ${hiddenBillIds.size} despesa(s) oculta(s)?\n\nElas serão removidas de todos os meses.`)) return;
 
   hiddenBillIds.forEach(billId => {
-    bills = bills.filter(x => x.id !== billId);
+    markDeleted('bills',[billId]);
+  markDeleted('txns', txns.filter(t=>t.billId===billId).map(t=>t.id));
+  bills = bills.filter(x => x.id !== billId);
     Object.values(monthData).forEach(me => {
       if(me.hiddenBills)   delete me.hiddenBills[billId];
       if(me.billsPaid)     delete me.billsPaid[billId];
@@ -5737,6 +5918,8 @@ async function deleteBill(billId){
     }
   }
 
+  markDeleted('bills',[billId]);
+  markDeleted('txns', txns.filter(t=>t.billId===billId).map(t=>t.id));
   bills = bills.filter(x => x.id !== billId);
 
   Object.values(monthData).forEach(me => {
