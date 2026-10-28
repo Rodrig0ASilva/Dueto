@@ -4,6 +4,30 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <title>Dueto</title>
+<script>
+(function(){
+  try{
+    var s = JSON.parse(localStorage.getItem('localSettings') || 'null') || {};
+    var V  = { green:'#1F3A2E', blue:'#1A2E4A', purple:'#2D1F4A', terracotta:'#4A2010', slate:'#1A2535' };
+    var V2 = { green:'#2C4F3D', blue:'#243D63', purple:'#3D2C6A', terracotta:'#6A2E18', slate:'#243050' };
+    var BL = { green:'#D9A949', blue:'#6AAFD4', purple:'#B890D4', terracotta:'#D4A060', slate:'#90B0C8' };
+    var m = s.darkMode || 'system';
+    var dark = m === 'dark' || (m === 'system' && !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches));
+    var tema = s.themeColor || 'green';
+    var key = s.splashBg || 'tema';
+    var base = (key !== 'tema' && key !== 'fundo' && V[key]) ? V[key] : (V[tema] || V.green);
+    var bg, fg = '#F6EFE2';
+    if(key === 'fundo'){ bg = dark ? '#16161B' : '#F6EFE2'; fg = dark ? '#F0EDE6' : '#2A2420'; }
+    else { bg = dark ? 'color-mix(in srgb, ' + base + ' 35%, #0b0b0e)' : base; }
+    var ik = (s.iconColor && s.iconColor !== 'tema') ? s.iconColor : tema;
+    var st = document.documentElement.style;
+    st.setProperty('--splash-bg', bg);
+    st.setProperty('--splash-fg', fg);
+    st.setProperty('--icon-tile', V2[ik] || V2.green);
+    st.setProperty('--icon-accent', BL[ik] || BL.green);
+  }catch(e){}
+})();
+</script>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%231F3A2E'/%3E%3Ccircle cx='22' cy='32' r='11' fill='none' stroke='%23D9A949' stroke-width='3.5'/%3E%3Ccircle cx='42' cy='32' r='11' fill='none' stroke='%23F6EFE2' stroke-width='3.5' opacity='.85'/%3E%3C/svg%3E" />
 <link rel="manifest" href="data:application/manifest+json;base64,ewogICJuYW1lIjogIkR1ZXRvIiwKICAic2hvcnRfbmFtZSI6ICJEdWV0byIsCiAgImRlc2NyaXB0aW9uIjogIkNvZnJlcyBlIGZpbmFuw6dhcyBkbyBjYXNhbCIsCiAgInN0YXJ0X3VybCI6ICIuLyIsCiAgInNjb3BlIjogIi4vIiwKICAiZGlzcGxheSI6ICJzdGFuZGFsb25lIiwKICAib3JpZW50YXRpb24iOiAicG9ydHJhaXQiLAogICJiYWNrZ3JvdW5kX2NvbG9yIjogIiNGNkVGRTIiLAogICJ0aGVtZV9jb2xvciI6ICIjMUYzQTJFIiwKICAiaWNvbnMiOiBbCiAgICB7CiAgICAgICJzcmMiOiAiZGF0YTppbWFnZS9zdmcreG1sLCUzQ3N2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHZpZXdCb3g9JzAgMCA2NCA2NCclM0UlM0NyZWN0IHdpZHRoPSc2NCcgaGVpZ2h0PSc2NCcgcng9JzE0JyBmaWxsPSclMjMxRjNBMkUnLyUzRSUzQ2NpcmNsZSBjeD0nMjInIGN5PSczMicgcj0nMTEnIGZpbGw9J25vbmUnIHN0cm9rZT0nJTIzRDlBOTQ5JyBzdHJva2Utd2lkdGg9JzMuNScvJTNFJTNDY2lyY2xlIGN4PSc0MicgY3k9JzMyJyByPScxMScgZmlsbD0nbm9uZScgc3Ryb2tlPSclMjNGNkVGRTInIHN0cm9rZS13aWR0aD0nMy41JyBvcGFjaXR5PScuODUnLyUzRSUzQy9zdmclM0UiLAogICAgICAic2l6ZXMiOiAiYW55IiwKICAgICAgInR5cGUiOiAiaW1hZ2Uvc3ZnK3htbCIsCiAgICAgICJwdXJwb3NlIjogImFueSBtYXNrYWJsZSIKICAgIH0KICBdCn0K" />
 <link rel="apple-touch-icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAALQAAAC0CAIAAACyr5FlAAAFc0lEQVR4nO3dPXLTUBSGYcXDLhiGmoYFsIA0sA9K1kLJPqDJArKANNQZhn1QKCMc2d/9073nHEvv0xIszdzXR4psKXfTeO8/fTTYytE8Pz6N3sTdoNclCEuDQukcB0346ltJnzhoIpoulWyNgywi25jIact/pozgNi5Q4+Qgi9vSNkJaJgdl3Jy2JaubHGRx66pGSMXkoIwdqFrE0jgoYzfKl7IoDsrYmcIFzcdBGbtUsqyZOChjx7KLm4qDMnYvvcQyDso4iMRCb7p8jn27Hgdj41DUcl+JgzIO6Oqic1iBtI6DsXFYl0t/Sv8zDmUVAIcVSP/jYGxgep0BkwMScUB6iYNjChZLDEwOSMQB6TRxTMGFOQkmByTigEQckO444YDC5IBEHJCIAxJxQCIOSMQBiTggEQck4oBEHJCIAxJxQCIOSMQBiTggEQck4oBEHJCIAxJxQCIOSMQBiTggEQck4oD0xnsHSj18e5v+gfvvf232JOv3r5/pH/jw+YvNnmwU+nbIbBCKfSjZIJTIoUSMo7mJS6MraW7iUsBKYsXRMYtzIxLpmMW5UIlEiWNQFud6JTIoi3NBEgnx24pBGb22YlCG2VaynCeHTRYrbSPEZcF8R4jn5HApo227Xm9l3xHiFodXGQ1b910hx637xOFbRtU+RDj8e+2DwznHiEtbgy6Xjbi0dUOXy6zjqF3FhpPHXpuoXcWGxTPYxBamcVQt28bLEhu3VbVsG9fMcltVIn7w1uVq1fwio09uuizV/CIRTm5W7E5IC9ep76Xuwldb7VvhOvV9Exe+mmVDRnG4lFH1msseupRR9ZpmfYS4fD4b9wlq91ced+AP8qnKzOKEtGRsGHwDo2Q33t3/yP6MwfqVzAaD3QgxOWy+m9NlKzbv7CDzY3gcob7el95WdmxYrll2WwZnHiEmB2JyjsP+y57NW7Qf9e4Hl7FxRPiArVDJqWg0o48snpPD62aChu16vYmP+2UfBEcckAbGkT7h8L1BbbX19AmH72xPb33oaQeTAxJxQCIOSMQBiTggEQck4oBEHJCIA9LAONLXQEPdK/vn4WvihyPfKzv06i2TAxJxQOL5HEV4Pkd/cZ4NmpU+7Yhp9MfFzocV++HRvEX7N7H73bOcc0AaHkf2yGI5PNLbyh5ZLN/KEZ6RHWJy8KhJl61kWcRRclo6uo/C+3VL3o6jVy7IjbJTkMkxG9dH91ce10eQmTEziqPtISpd1D4axPEhGY6PBrnKbnK49NH20BiXPqKVMcV8Jti8opYPjGs2r6jlA+Ms8ahJHjUp8ZBaHlIr+fzVhCB335eMpSAz3+WuO59fZSN8IFe4D+4PyXDcB7frHKHulU2LfK/sUDyfo8gxn88R4m+8mZ2CbM/R7BQkwuEsxOVzHjXpspWsEJNjwZ8ODZLFLFYcM/7ocBAR41jw58p9hY7jXKgnIadF+BJXFzcTB+yF+G0FMREHJOKARByQiAMScUAiDkjEAYk4IBEHJOKARByQiAMScUAiDkjEAYk4IBEHJOKARByQiAMScUAiDkjEAYk4IJ2eH5+89wERPT8+MTkgEQck4oB0mqaJ0w6szEkwOSARB6SXODiyYLHEwOSARByQ/sfBkQXT6wyYHJBexcHwOLhVAOvJQR+Hdbn0HFYgXYmD4XFAVxf9+uSgj0NRy81hBZKMg+FxEImFTk0O+ti99BJnDiv0sWPZxc2fc9DHLpUsa9EJKX3sTOGClv62Qh+7Ub6UFb/K0scOVC3iXcMG+Mtft6jhvd1yEYwRcnPalqxlciwYIfFteSdvunzOCAlu4wJtmhwLRkg0Xd63feJYUImvvrO8cxwLKrE06Pg+Ko5zhDKCwQnfP+ruBWRLT+snAAAAAElFTkSuQmCC" />
@@ -499,11 +523,8 @@ body {
 .chart-legend-dot { width: 9px; height: 9px; border-radius: 50%; display: inline-block; }
 .stats-empty { text-align: center; padding: 50px 20px; color: var(--text-muted); font-size: 13px; }
 
-.screen { display: none; animation: fadeIn 0.22s ease; }
+.screen { display: none; }
 .screen.active { display: block; }
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
-}
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
 .overlay {
@@ -1770,6 +1791,21 @@ body.glass.dark .sheet { background: rgba(26,26,33, min(0.97, calc(0.96 * var(--
 /* ── Balões com vidro (Corrida+ 0.167): todos os cartões translúcidos no efeito transparente ── */
 body.glass .source-balance-chip, body.glass .loans-box, body.glass .add-dashed-btn, body.glass .add-profile-btn, body.glass .month-nav-btn, body.glass .installment-preview, body.glass .split-row, body.glass .action-btn, body.glass .source-breakdown-item, body.glass .menu-item, body.glass .bill-amount-input, body.glass .profile-card { background: rgba(255,255,255, calc(0.5 * var(--gl-k))); -webkit-backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); backdrop-filter: blur(calc(24px * var(--gl-b))) saturate(180%); border-color: rgba(255,255,255,0.6); box-shadow: inset 0 1px 0 rgba(255,255,255,0.55), 0 6px 20px rgba(20,16,12,0.08); }
 body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dark .add-dashed-btn, body.glass.dark .add-profile-btn, body.glass.dark .month-nav-btn, body.glass.dark .installment-preview, body.glass.dark .split-row, body.glass.dark .action-btn, body.glass.dark .source-breakdown-item, body.glass.dark .menu-item, body.glass.dark .bill-amount-input, body.glass.dark .profile-card { background: rgba(30,30,40, calc(0.5 * var(--gl-k))); border-color: rgba(255,255,255,0.1); }
+
+.danger-zone{margin-top:28px;padding-top:18px;border-top:2px dashed var(--terracotta);}
+
+/* Imagem de fundo */
+#customBg{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:0;transition:opacity .45s ease;}
+#customBg.on{opacity:1;}
+#app{position:relative;z-index:1;}
+body.bg-ink-light:not(.dark) #app :is(.screen-title,.month-nav-label,.month-nav-hint,.section-title,.section-sub,.empty-note,.loading){color:#F6EFE2;}
+body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-row-compact,.profile-card,.seg,.menu-item,.sheet) :is(.screen-title,.month-nav-label,.month-nav-hint,.section-title,.section-sub,.empty-note,.loading){color:var(--ink);}
+/* Folhas: fecho animado (desce e desaparece) e alça arrastável */
+.overlay.closing{opacity:0;transition:opacity .26s ease;}
+.overlay.closing .sheet{transform:translateY(100%);transition:transform .26s cubic-bezier(.4,0,.2,1);}
+@media (min-width: 860px){ .overlay.closing .sheet{transform:translateY(16px);opacity:0;transition:transform .26s ease,opacity .26s ease;} }
+.sheet-handle{touch-action:none;cursor:grab;position:relative;}
+.sheet-handle::after{content:'';position:absolute;left:-40px;right:-40px;top:-14px;bottom:-14px;}
 </style>
 <script>
 // Aplica tema e modo escuro antes da primeira pintura (evita o flash de cor errada)
@@ -1806,6 +1842,7 @@ body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dar
 </style>
 </head>
 <body>
+<div id="customBg"><div id="customBgGrain" style="position:absolute;inset:0;pointer-events:none;mix-blend-mode:overlay;opacity:0;"></div></div>
 
 <div id="updateBanner" style="display:none;">
   <div id="updateBannerText">🆕 Atualizando…</div>
@@ -2039,6 +2076,29 @@ body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dar
       <div class="switch" id="swGlass" onclick="toggleLiquidGlass()"></div>
     </div>
     <div id="glassControls"></div>
+    <div id="bgImageRow"></div>
+
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Ícone do app</div></div>
+    <div class="section-sub" style="margin-bottom:8px;">Aparece na tela de carregamento. No navegador, a aba muda logo; no ecrã inicial, o ícone muda ao instalar de novo.</div>
+    <div id="iconPreview" style="display:flex;justify-content:center;align-items:center;padding:20px;border-radius:var(--r-xl);background:var(--splash-bg);margin:8px 0 12px;"></div>
+    <div class="field" style="margin-top:8px;">
+      <label>Cor do ícone</label>
+      <div class="theme-color-grid" id="iconColorGrid"></div>
+    </div>
+    <div class="switch-row" style="margin-top:8px;">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Efeito transparente no ícone</div>
+        <div class="switch-row-sub">Bloco translúcido com contorno claro, como o efeito transparente da app.</div>
+      </div>
+      <div class="switch" id="swIconGlass" onclick="toggleIconGlass()"></div>
+    </div>
+
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Fundo da tela de carregamento</div></div>
+    <div class="section-sub" style="margin-bottom:8px;">Segue o tema por omissão. Pode também usar o fundo do app ou uma cor do tema.</div>
+    <div class="field" style="margin-top:8px;">
+      <div class="theme-color-grid" id="splashBgGrid"></div>
+    </div>
+    <div style="height:24px;"></div>
   </div>
 
   <div class="screen" id="screen-settings">
@@ -2049,26 +2109,44 @@ body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dar
         </div>
         <div class="screen-title">Você</div>
       </div>
-      <div class="sync-pill" id="syncPill-settings" onclick="loadAll(true)" title="Toque para sincronizar agora">
-        <span class="sync-dot" id="syncDot-settings"></span>
-        <span id="syncStatus-settings">sincronizando</span>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;position:relative;">
+        <div class="sync-pill" id="syncPill-settings" onclick="loadAll(true)" title="Toque para sincronizar agora">
+          <span class="sync-dot" id="syncDot-settings"></span>
+          <span id="syncStatus-settings">sincronizando</span>
+        </div>
+        <div onclick="tapVersion()" style="position:absolute;right:0;top:100%;margin-top:4px;white-space:nowrap;font-size:10px;color:var(--text-faint);font-weight:700;letter-spacing:.04em;cursor:pointer;">v<span id="appVersionLabel"></span></div>
       </div>
     </div>
 
-    <!-- PERFIS -->
-    <div class="section-head" style="margin-top:6px;"><div class="section-title">Perfis</div></div>
+    <!-- CONTA -->
+    <div class="section-head" style="margin-top:6px;"><div class="section-title">Conta</div></div>
+    <div id="fbAccountBox" class="section-sub">Carregando…</div>
+
+    <div class="section-head" style="margin-top:20px;"><div class="section-title">Perfis</div></div>
     <div id="profileCardsList"></div>
     <div class="add-profile-btn" onclick="addProfile()">＋ Adicionar perfil</div>
 
-    <!-- ESPAÇO ATIVO -->
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Ver cofres e contas de</div></div>
     <div class="profile-switcher-slot"></div>
     <div class="section-sub" id="profileSwitcherHint" style="margin:-8px 2px 0; font-size:11px; line-height:1.5;">
       Escolha se quer ver os cofres e contas compartilhados da casa, ou só os do seu perfil pessoal. O padrão é Casa.
     </div>
 
-    <!-- APARÊNCIA -->
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Aparência</div></div>
+    <!-- PREFERÊNCIAS -->
+    <div class="section-head" style="margin-top:24px;"><div class="section-title">Preferências</div></div>
+    <div class="menu-item" onclick="openAparencia()" style="cursor:pointer;">
+      <span class="ic">🎨</span>
+      <div><div class="menu-item-title">Aparência</div><div class="menu-item-sub">Modo, cor do tema e efeito transparente</div></div>
+      <span class="ic" style="margin-left:auto;">›</span>
+    </div>
+    <div class="menu-item" onclick="goForecast()" style="cursor:pointer;margin-top:8px;">
+      <span class="ic">📈</span>
+      <div><div class="menu-item-title">Previsão de Ganho</div><div class="menu-item-sub">Simule quanto cada cofre terá nos próximos meses</div></div>
+      <span class="ic" style="margin-left:auto;">›</span>
+    </div>
+
+    <!-- CONFIGURAÇÕES -->
+    <div class="section-head" style="margin-top:24px;"><div class="section-title">Configurações</div></div>
     <div class="switch-row">
       <div class="switch-row-text">
         <div class="switch-row-title">Aba Estatísticas</div>
@@ -2076,25 +2154,40 @@ body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dar
       </div>
       <div class="switch" id="statsToggle" onclick="toggleStatsTab()"></div>
     </div>
-    <div class="menu-item" onclick="openAparencia()" style="margin-top:12px;cursor:pointer;">
-      <span class="ic">🎨</span>
-      <div><div class="menu-item-title">Aparência</div><div class="menu-item-sub">Modo, cor do tema e efeito transparente</div></div>
-      <span class="ic" style="margin-left:auto;">›</span>
+
+    <!-- ZONA DE PERIGO -->
+    <div class="danger-zone">
+      <div class="section-title" style="font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:var(--terracotta);margin-bottom:10px;">Zona de perigo</div>
+      <button onclick="confirmResetAll()" style="display:block;width:100%;text-align:center;padding:15px;border-radius:var(--r-md);font-weight:800;font-size:15px;border:none;cursor:pointer;background:var(--terracotta);color:#fff;box-shadow:0 4px 14px rgba(168,83,63,0.3);">🗑️ Apagar todos os dados</button>
+      <div style="font-size:11px;color:var(--text-muted);text-align:center;margin-top:8px;line-height:1.5;">Ação permanente. Pede confirmação antes de apagar.</div>
     </div>
 
-    <!-- PREVISÃO DE GANHO -->
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Planejamento</div></div>
-    <div class="switch-row" onclick="goForecast()" style="cursor:pointer;">
-      <div class="switch-row-text">
-        <div class="switch-row-title">📈 Previsão de Ganho</div>
-        <div class="switch-row-sub">Simule quanto cada cofre terá nos próximos meses com base no seu salário e gastos estimados.</div>
+  </div>
+
+    <!-- ===================== MODO DEV (aba própria) ===================== -->
+  <div class="screen" id="screen-dev">
+    <div class="topbar">
+      <div class="screen-title-group">
+        <div class="screen-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/></svg>
+        </div>
+        <div class="screen-title">Modo Dev</div>
       </div>
-      <div style="font-size:20px; color:var(--text-faint);">›</div>
+      <div class="switch on" id="devModeToggleDev" onclick="toggleDevMode()" title="Desativar Modo Dev"></div>
     </div>
-
-    <!-- SINCRONIZAÇÃO -->
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Conta e casal</div></div>
-    <div id="fbAccountBox" class="section-sub">Carregando…</div>
+    <div class="section-sub" style="margin:0 0 14px;">Ferramentas para editar dados diretamente. Use com cuidado.</div>
+      <div class="section-head" style="margin-top:0;"><div class="section-title">Ferramentas</div></div>
+      <div class="menu-list">
+        <div class="menu-item" onclick="devOpenEditVaults()"><span class="ic">✏️</span><div><div class="menu-item-title">Editar saldos dos cofres</div><div class="menu-item-sub">Altera o saldo de qualquer cofre</div></div></div>
+        <div class="menu-item" onclick="devOpenDeleteTxns()"><span class="ic">🗑️</span><div><div class="menu-item-title">Apagar transações</div><div class="menu-item-sub">Remove movimentos individuais</div></div></div>
+        <div class="menu-item" onclick="devOpenHiddenBills()"><span class="ic">🙈</span><div><div class="menu-item-title">Despesas ocultas</div><div class="menu-item-sub">Restaura ou apaga contas ocultas por mês</div></div></div>
+        <div class="menu-item" onclick="devOpenEditLoans()"><span class="ic">🔧</span><div><div class="menu-item-title">Editar empréstimos</div><div class="menu-item-sub">Ajusta o valor restante</div></div></div>
+        <div class="menu-item" onclick="devOpenEditMonthData()"><span class="ic">📅</span><div><div class="menu-item-title">Dados do mês</div><div class="menu-item-sub">Rendas e transferências do mês atual</div></div></div>
+        <div class="menu-item" onclick="devOpenEditBills()"><span class="ic">🧾</span><div><div class="menu-item-title">Editar contas</div><div class="menu-item-sub">Nome, valor e cofre destino</div></div></div>
+        <div class="menu-item" onclick="devExportData()"><span class="ic">📤</span><div><div class="menu-item-title">Exportar dados (JSON)</div><div class="menu-item-sub">Cópia completa dos dados</div></div></div>
+        <div class="menu-item" onclick="devImportData()"><span class="ic">📥</span><div><div class="menu-item-title">Importar dados (JSON)</div><div class="menu-item-sub">Substitui os dados atuais</div></div></div>
+        <div class="menu-item" onclick="devCheckForUpdate()"><span class="ic">🔄</span><div><div class="menu-item-title">Verificar atualização</div><div class="menu-item-sub">Compara com a versão publicada</div></div></div>
+      </div>
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Sincronização</div></div>
     <div id="syncUrlLockedView" style="background:rgba(31,58,46,0.06);border-radius:var(--r-md);padding:14px;margin-top:8px;display:flex;align-items:center;gap:12px;">
       <div style="font-size:22px;">🔒</div>
@@ -2117,29 +2210,13 @@ body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dar
       </div>
     </div>
 
-    <button class="delete-all-btn" onclick="confirmResetAll()">Apagar todos os dados</button>
 
-    <!-- Fix 5: Dev Mode toggle — hidden power-user mode for editing any data directly.
-         Fix 6: App version number — bump APP_VERSION in JS when updating the code. -->
-    <div class="section-head" style="margin-top:24px;"><div class="section-title">Desenvolvedor</div></div>
-    <div class="switch-row" id="devSwitchRow" style="display:none;">
-      <div class="switch-row-text">
-        <div class="switch-row-title">Modo Dev 🛠️</div>
-        <div class="switch-row-sub">Permite editar saldos diretamente, apagar transações individuais e forçar valores. Use com cuidado.</div>
-      </div>
-      <div class="switch" id="devModeToggle" onclick="toggleDevMode()"></div>
-    </div>
-    <div id="devModePanel" style="display:none; margin-top:8px;">
+    <div id="devModePanel" style="margin-top:8px;">
       <div class="section-head" style="margin-top:0;"><div class="section-title">🧪 Versão de teste</div></div>
       <div class="section-sub" style="margin-bottom:10px;">Abre o index2.html só nesta sessão para testar. Ao reiniciar o app, volta ao index.html.</div>
       <button class="btn btn-primary" onclick="testarIndex2()" id="btnAlternarVersao">Testar index2.html (temporário)</button>
       <div style="height:16px;"></div>
       <div class="section-head" style="margin-top:4px;"><div class="section-title" style="font-size:15px;">Modo Dev ativo</div></div>
-      <div class="loans-box padded" style="display:flex;flex-direction:column;gap:10px;">
-        <div style="font-size:12px;color:var(--text-muted);line-height:1.5;">Uma barra flutuante <b>🛠️</b> aparece em todas as telas. Ela dá acesso rápido a editar cofres, transações, empréstimos e exportar dados. Toque nos valores nas telas para editar direto.</div>
-        <button class="btn btn-ghost" style="text-align:left;padding:10px 4px;" onclick="devExportData()">📤 Exportar dados (JSON)</button>
-        <button class="btn btn-ghost" style="text-align:left;padding:10px 4px;" onclick="devCheckForUpdate()">🔄 Verificar atualização</button>
-      </div>
 
       <div class="section-head" style="margin-top:16px;"><div class="section-title" style="font-size:15px;">🔒 Encriptação dos dados sincronizados</div></div>
       <div class="switch-row" style="margin-bottom:8px;">
@@ -2174,10 +2251,7 @@ body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dar
         <button class="btn btn-ghost" style="flex:1;text-align:center;padding:10px 4px;color:var(--terracotta);" onclick="clearSyncLog()">🗑️ Limpar log</button>
       </div>
     </div>
-    <div style="text-align:center; margin-top:24px; margin-bottom:4px; font-size:11px; color:var(--text-faint);">
-      <!-- Fix 6: Version string — update APP_VERSION constant in JS when modifying the code -->
-      <span onclick="tapVersion()" style="cursor:default;user-select:none;">Dueto v<span id="appVersionLabel"></span></span>
-    </div>
+
   </div>
 
   <!-- ===================== ESTATÍSTICAS ===================== -->
@@ -2212,42 +2286,32 @@ body.glass.dark .source-balance-chip, body.glass.dark .loans-box, body.glass.dar
   <div class="loading" id="loadingState">Abrindo os cofres…</div>
 </div>
 
-<!-- Fix 8: Full-screen splash screen — hides the app until data has loaded.
-     UPDATE APP_VERSION comment when bumping the version number below. -->
-<div id="splashScreen" style="
-  position:fixed; inset:0; z-index:999;
-  background:var(--cream);
-  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
-  background-image:
-    radial-gradient(circle at 100% 0%, var(--splash-glow-1, rgba(184,134,43,0.07)), transparent 45%),
-    radial-gradient(circle at 0% 100%, var(--splash-glow-2, rgba(31,58,46,0.06)), transparent 40%);
-  transition: background 0.3s;
-">  <div id="splashIcon" style="width:62px;height:62px;border-radius:16px;background:linear-gradient(155deg,var(--vault-light),var(--vault));display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,0.25);filter:grayscale(1);transition:filter .9s ease;">
+<!-- Tela de carregamento (igual à do Corrida+): tema, mensagens com fade, tempo mínimo e ícone que passa a cor. -->
+<div id="splashScreen">
+  <div id="splashIcon" class="icon-gray">
     <svg viewBox="0 0 64 64" width="40" height="36" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="22" cy="32" r="11" fill="none" stroke="#D9A949" stroke-width="3.5"/>
+      <circle cx="22" cy="32" r="11" fill="none" style="stroke:var(--icon-accent,#D9A949)" stroke-width="3.5"/>
       <circle cx="42" cy="32" r="11" fill="none" stroke="#F6EFE2" stroke-width="3.5" opacity=".85"/>
     </svg>
   </div>
-  <div class="splash-title" style="font-family:'Fraunces',serif;font-weight:600;font-size:26px;color:var(--vault);letter-spacing:-0.01em;">Dueto</div>
-  <div id="splashVersion" style="font-size:11px;color:var(--text-faint);margin-top:-10px;"></div>
-  <div style="width:140px;height:3px;background:rgba(127,127,127,0.18);overflow:hidden;border-radius:3px;"><div class="splash-bar"></div></div>
-  <div style="display:flex;gap:7px;align-items:center;">
-    <div style="width:7px;height:7px;border-radius:50%;background:var(--vault-light);animation:splashDot 1.2s ease-in-out infinite;"></div>
-    <div style="width:7px;height:7px;border-radius:50%;background:var(--vault-light);animation:splashDot 1.2s ease-in-out 0.2s infinite;"></div>
-    <div style="width:7px;height:7px;border-radius:50%;background:var(--vault-light);animation:splashDot 1.2s ease-in-out 0.4s infinite;"></div>
-  </div>
+  <div class="splash-title">Dueto</div>
+  <div id="splashBar" class="splash-track"><div class="splash-bar"></div></div>
+  <div id="splashMsg" class="splash-msg">A carregar…</div>
+  <div id="splashVersion" class="splash-version"></div>
 </div>
 <style>
-/* Prevent creme flash before JS applies dark mode — match dark body bg immediately */
 html { background: #F6EFE2; }
-@media (prefers-color-scheme: dark) {
-  html { background: #17171C; }
-  #splashScreen { background: #17171C !important; }
-  #splashScreen .splash-title { color: #EDE8E0 !important; }
-}
-@keyframes splashDot { 0%,80%,100%{opacity:.25;transform:scale(.85)} 40%{opacity:1;transform:scale(1)} }
-#splashScreen.hide { animation: splashFade 0.35s ease forwards; }
-@keyframes splashFade { to { opacity:0; pointer-events:none; } }
+@media (prefers-color-scheme: dark) { html { background: #17171C; } }
+#splashScreen{position:fixed;inset:0;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--splash-bg,#1F3A2E);transition:opacity .4s ease;}
+#splashScreen.hide{opacity:0;pointer-events:none;}
+#splashIcon{width:72px;height:72px;border-radius:16px;margin-bottom:20px;background:var(--icon-tile,#2C4F3D);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.25);transition:filter .9s ease;}
+#splashIcon.icon-gray{filter:grayscale(1);}
+.splash-title{font-family:'Fraunces',serif;font-weight:600;font-size:28px;letter-spacing:-.01em;color:var(--splash-fg,#F6EFE2);}
+.splash-track{width:140px;height:3px;border-radius:3px;background:rgba(255,255,255,.25);margin-top:14px;overflow:hidden;}
+.splash-bar{height:100%;width:40%;border-radius:3px;background:var(--splash-fg,#F6EFE2);animation:splashInd 1.1s ease-in-out infinite;}
+@keyframes splashInd{0%{transform:translateX(-100%)}100%{transform:translateX(260%)}}
+.splash-msg{font-size:12px;margin-top:10px;font-weight:500;color:var(--splash-fg,#F6EFE2);opacity:.6;transition:opacity .25s ease;}
+.splash-version{font-size:10px;margin-top:14px;font-weight:600;opacity:.65;letter-spacing:.04em;text-transform:uppercase;color:var(--splash-fg,#F6EFE2);}
 </style>
 
 <!-- ===================== TAB BAR ===================== -->
@@ -2277,6 +2341,10 @@ html { background: #F6EFE2; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg>
       Você
     </div>
+    <div class="tab hidden-tab" id="tabDev" onclick="goDev()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-2.5 2.5-2.5-.5-.5-2.5z"/></svg>
+      Dev
+    </div>
   </div>
 </div>
 
@@ -2286,21 +2354,6 @@ html { background: #F6EFE2; }
 </div>
 
 <div class="toast" id="toast"></div>
-
-<!-- Fix 5: Floating Dev Toolbar — visible on all screens when Dev Mode is active -->
-<div id="devToolbar" style="display:none; position:fixed; bottom:calc(90px + env(safe-area-inset-bottom)); left:50%; transform:translateX(-50%); z-index:45; max-width:460px; width:calc(100% - 36px);">
-  <div style="background:var(--vault); border-radius:var(--r-xl); padding:10px 14px; display:flex; gap:8px; align-items:center; box-shadow:0 4px 24px rgba(0,0,0,0.3); overflow-x:auto;">
-    <span style="font-size:16px; min-width:20px;">🛠️</span>
-    <button onclick="devOpenEditVaults()" style="flex-shrink:0;background:rgba(255,255,255,0.12);border:none;border-radius:var(--r-md);padding:7px 11px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">✏️ Cofres</button>
-    <button onclick="devOpenDeleteTxns()" style="flex-shrink:0;background:rgba(255,255,255,0.12);border:none;border-radius:var(--r-md);padding:7px 11px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🗑️ Transações</button>
-    <button onclick="devOpenHiddenBills()" style="flex-shrink:0;background:rgba(255,255,255,0.12);border:none;border-radius:var(--r-md);padding:7px 11px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🙈 Ocultas</button>
-    <button onclick="devOpenEditLoans()" style="flex-shrink:0;background:rgba(255,255,255,0.12);border:none;border-radius:var(--r-md);padding:7px 11px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🔧 Empréstimos</button>
-    <button onclick="devOpenEditMonthData()" style="flex-shrink:0;background:rgba(255,255,255,0.12);border:none;border-radius:var(--r-md);padding:7px 11px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📅 Mês</button>
-    <button onclick="devOpenEditBills()" style="flex-shrink:0;background:rgba(255,255,255,0.12);border:none;border-radius:var(--r-md);padding:7px 11px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🧾 Contas</button>
-    <button onclick="devExportData()" style="flex-shrink:0;background:rgba(255,255,255,0.12);border:none;border-radius:var(--r-md);padding:7px 11px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📤 Export</button>
-    <button onclick="devImportData()" style="flex-shrink:0;background:rgba(255,255,255,0.12);border:none;border-radius:var(--r-md);padding:7px 11px;color:#fff;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">📥 Import</button>
-  </div>
-</div>
 
 <script>
 if (!window.storage) {
@@ -2316,30 +2369,98 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.7.2';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.8.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
+const SPLASH_MIN_MS = 1200;
+const splashInicio = Date.now();
+let splashFechada = false;
+window.__splashTok = 0;
+const esperar = (ms) => new Promise(r => setTimeout(r, ms));
+
+// Troca a mensagem da splash com fade; um token impede que uma mensagem antiga substitua a nova.
+function trocarTextoSplash(msg){
+  const el = document.getElementById('splashMsg');
+  if(!el || el.textContent === msg) return;
+  const tok = ++window.__splashTok;
+  el.style.opacity = '0';
+  setTimeout(() => {
+    if(tok !== window.__splashTok) return;
+    el.textContent = msg;
+    el.style.opacity = '1';
+  }, 250);
+}
+function setSplash(msg){ trocarTextoSplash(msg); }
+
+function computeSplash(s, dark){
+  const key = s.splashBg || 'tema';
+  const tema = THEME_COLORS.find(t => t.key === (s.themeColor || 'green')) || THEME_COLORS[0];
+  if(key === 'fundo') return dark ? { bg:'#16161B', fg:'#F0EDE6' } : { bg:'#F6EFE2', fg:'#2A2420' };
+  const alvo = (key !== 'tema' && THEME_COLORS.find(t => t.key === key)) || tema;
+  return dark ? { bg:`color-mix(in srgb, ${alvo.vault} 35%, #0b0b0e)`, fg:'#F6EFE2' } : { bg: alvo.vault, fg:'#F6EFE2' };
+}
+function applySplashAppearance(){
+  const c = computeSplash(localSettings, document.body.classList.contains('dark'));
+  const r = document.documentElement.style;
+  r.setProperty('--splash-bg', c.bg);
+  r.setProperty('--splash-fg', c.fg);
+}
+
+// Fecha a splash: respeita o tempo mínimo, põe o ícone a cores e desvanece.
+async function hideSplash(){
+  if(splashFechada) return;
+  splashFechada = true;
+  await esperar(Math.max(0, SPLASH_MIN_MS - (Date.now() - splashInicio)));
+  document.getElementById('splashIcon')?.classList.remove('icon-gray');
+  await esperar(900);
+  const s = document.getElementById('splashScreen');
+  if(s){ s.classList.add('hide'); setTimeout(() => s.remove(), 400); }
+}
+
+// Lê e limpa a marca de atualização automática. True se a versão atual é a que foi pedida.
+async function consumePendingUpdateNotice(){
+  let v = '';
+  try{ const p = await window.storage.get('pendingUpdateNotice'); v = p ? p.value : ''; }catch(e){}
+  if(!v) return false;
+  try{ await window.storage.set('pendingUpdateNotice', ''); }catch(e){}
+  return v === APP_VERSION;
+}
+
+// Espera pelo Firebase (no máximo 3 s). Confirma a flag, porque o evento pode já ter disparado.
+function esperarFirebase(){
+  return new Promise(res => {
+    if(window.__fbReady) return res();
+    window.addEventListener('firebase-ready', () => res(), { once: true });
+    setTimeout(res, 3000);
+  });
+}
+
+// Verifica atualização antes de carregar. Se houver versão nova, guarda a marca e recarrega.
 async function checkForUpdateOnBoot(){
+  const ctrl = new AbortController();
+  const limite = setTimeout(() => ctrl.abort(), 2500);
   try{
-    const url  = location.href.split('?')[0] + '?v=' + Date.now();
-    const resp = await fetch(url, { cache: 'no-store' });
+    const url = location.href.split('?')[0] + '?v=' + Date.now();
+    const resp = await fetch(url, { cache: 'no-store', signal: ctrl.signal });
+    clearTimeout(limite);
+    if(!resp.ok) return false;
     const html = await resp.text();
-    const match = html.match(/const APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
-    const remoteVersion = match ? match[1] : null;
-    if(!remoteVersion || remoteVersion === APP_VERSION) return;
-
-    const attemptedKey = 'updateAutoApplied_' + remoteVersion;
-    if(sessionStorage.getItem(attemptedKey)) return;
-    try{ sessionStorage.setItem(attemptedKey, '1'); }catch(e){}
-
-    const banner = document.getElementById('updateBanner');
-    const text   = document.getElementById('updateBannerText');
-    if(text) text.textContent = `🆕 Atualizando para v${remoteVersion}…`;
-    if(banner) banner.style.display = 'block';
-
-    setTimeout(() => { location.replace(location.href.split('?')[0] + '?v=' + Date.now()); }, 1200);
+    const m = html.match(/const APP_VERSION\s*=\s*['"]([^'"]+)['"]/);
+    const remote = m ? m[1] : null;
+    if(!remote || remote === APP_VERSION) return false;
+    const chave = 'updateAutoApplied_' + remote;
+    if(sessionStorage.getItem(chave)) return false; // evita ciclos de recarregamento
+    try{ sessionStorage.setItem(chave, '1'); }catch(e){}
+    await window.storage.set('pendingUpdateNotice', remote);
+    setSplash(`⬇️ A atualizar para v${remote}…`);
+    location.replace(location.href.split('?')[0] + '?v=' + Date.now());
+    return true;
   }catch(e){
+    clearTimeout(limite);
+    return false;
   }
 }
+
+
 
 async function devCheckForUpdate(){
   if(!localSettings.devMode){ showToast('Ative o Modo Dev primeiro'); return; }
@@ -2711,18 +2832,9 @@ function trocarTextoLoading(msg){
     el.textContent = msg; el.style.opacity = '1';
   }, 250);
 }
-function showLoadingState(msg){
-  const el = document.getElementById('loadingState');
-  el.style.display = '';
-  if(el.textContent && el.textContent !== msg) trocarTextoLoading(msg); else el.textContent = msg;
-}
-function hideLoadingState(){
-  const si = document.getElementById('splashIcon');
-  if(si) si.style.filter = 'none'; // ícone passa do cinza para a cor quando os dados chegam
-  document.getElementById('loadingState').style.display = 'none';
-  const splash = document.getElementById('splashScreen');
-  if(splash){ splash.classList.add('hide'); setTimeout(()=>splash.remove(), 400); }
-}
+function showLoadingState(msg){ setSplash(msg); }
+
+
 
 async function _fetchCloudData(attempt){
   attempt = attempt || 1;
@@ -2777,15 +2889,28 @@ function pruneOrphanedBillData(){
 }
 
 async function loadAll(manual = false){
+  const isFirstLoad = !window.__appStarted;
+  window.__appStarted = true;
+  if(isFirstLoad){
+    setSplash('A verificar atualização…');
+    if(await checkForUpdateOnBoot()) return; // a página recarrega; a splash continua na versão nova
+    await esperarFirebase();                 // a sessão tem de estar resolvida antes de decidir o modo de sincronização
+  }
+  setSplash('A carregar…');
+
   await loadLocalOnlySettings();
   await loadSyncState();
 
   applyAllAppearance();
+  applySplashAppearance();
 
   if(fbActive()){
     await loadFromLocalStorage();
+    setSplash('A sincronizar…');
+    const primeiroSnap = new Promise(r => { window.__fbFirstSnap = r; });
     if(localStorage.getItem(PENDING_PUSH_KEY)) await fbPushState(buildCloudPayload());
     fbStartListening();
+    if(isFirstLoad) await Promise.race([primeiroSnap, esperar(6000)]);
     setSyncStatus('synced');
   } else if(syncUrl){
     setSyncStatus('syncing');
@@ -2824,10 +2949,9 @@ async function loadAll(manual = false){
       await loadFromLocalStorage();
       if(pruneOrphanedBillData()) await persistMonthData();
       setSyncStatus('nolink');
-      const stillOnSplash = !!document.getElementById('splashScreen');
-      if(stillOnSplash){
+      if(!splashFechada){
         showLoadingState('⚠️ Sem conexão com a planilha — usando dados salvos');
-        await new Promise(r => setTimeout(r, 900));
+        await esperar(900);
       } else if(manual){
         showToast(`⚠️ Sync falhou: ${err.message || err}`);
       }
@@ -2841,14 +2965,24 @@ async function loadAll(manual = false){
 
   applyTabVisibility();
   applyAllAppearance();
-  hideLoadingState();
   const devToolbar = document.getElementById('devToolbar');
   if(devToolbar) devToolbar.style.display = (localSettings && localSettings.devMode) ? '' : 'none';
+  const loadingEl = document.getElementById('loadingState');
+  if(loadingEl) loadingEl.style.display = 'none';
   renderAll();
   renderMonth();
   renderProfileSwitcher();
-  checkForUpdateOnBoot(); // não precisa esperar — roda em paralelo, sem travar a abertura do app
+
+  if(!splashFechada){
+    if(await consumePendingUpdateNotice()){
+      setSplash(`✅ Atualizado para v${APP_VERSION}`);
+      await esperar(1100);
+    }
+    await hideSplash();
+  }
 }
+
+
 
 async function persistVaults()    { await safeSet('vaults',    arrToDict(vaults)); }
 async function persistTxns()      { await safeSet('txns',      arrToDict(txns));   }
@@ -2969,7 +3103,7 @@ function setSyncStatus(state){
 }
 
 // Mesma ordem em que as abas aparecem na barra (o arrasto e a direção do deslize dependem disso)
-const TABS = ['tabMonth','tabFeira','tabHome','tabLoans','tabStats','tabSettings'];
+const TABS = ['tabMonth','tabFeira','tabHome','tabLoans','tabStats','tabSettings','tabDev'];
 
 function activateTab(id){
   TABS.forEach(t => document.getElementById(t).classList.toggle('active', t === id));
@@ -3188,7 +3322,7 @@ const glassObserver = new MutationObserver(muts => {
 glassObserver.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
 
 // Deslizar na horizontal sobre o conteúdo: aba seguinte ou anterior.
-const SCREEN_ORDER = ['screen-month','screen-feira','screen-home','screen-loans','screen-stats','screen-settings'];
+const SCREEN_ORDER = ['screen-month','screen-feira','screen-home','screen-loans','screen-stats','screen-settings','screen-dev'];
 function showScreen(id){
   const prev = document.querySelector('.screen.active');
   const from = prev ? SCREEN_ORDER.indexOf(prev.id) : -1;
@@ -3210,6 +3344,7 @@ function goMonth(){
   renderMonth();
 }
 function openAparencia(){
+  renderAparenciaControls();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','slide-r','slide-l'));
   const el = document.getElementById('screen-aparencia');
   el.classList.add('active','slide-r');
@@ -3230,6 +3365,15 @@ function closeAparencia(){
   if(appEl) appEl.scrollTop = 0;
 }
 
+function goDev(){
+  if(!localSettings.devMode) return;
+  showScreen('screen-dev'); activateTab('tabDev');
+  renderDevScreen();
+}
+function renderDevScreen(){
+  const sw = document.getElementById('devModeToggleDev');
+  if(sw) sw.classList.toggle('on', !!localSettings.devMode);
+}
 function goSettings(){
   showScreen('screen-settings'); activateTab('tabSettings');
   renderSettings();
@@ -3265,6 +3409,9 @@ function applyTabVisibility(){
   if(!showFeira && document.getElementById('screen-feira').classList.contains('active')){
     goMonth();
   }
+  const devTab = document.getElementById('tabDev');
+  if(devTab) devTab.classList.toggle('hidden-tab', !(localSettings && localSettings.devMode));
+  if(!(localSettings && localSettings.devMode) && document.getElementById('screen-dev').classList.contains('active')) goSettings();
   rebuildTabOverlay(); glassRefreshAll(false);
 }
 async function toggleStatsTab(){
@@ -3301,20 +3448,7 @@ function softChange(fn){
   clearTimeout(softTimer);
   softTimer = setTimeout(() => document.documentElement.classList.remove('soft-change'), 650);
 }
-async function setThemeColor(key){
-  localSettings.themeColor = key;
-  await persistLocalSettings(); // local only — never synced
-  softChange(() => applyThemeColor(key));
-  renderSettings();
-}
 
-function updateThemeColorMeta(){
-  const meta = document.getElementById('themeColorMeta');
-  if(!meta) return;
-  const isDark = document.body.classList.contains('dark');
-  const theme  = THEME_COLORS.find(t => t.key === (localSettings.themeColor || 'green')) || THEME_COLORS[0];
-  meta.setAttribute('content', isDark ? '#111114' : theme.vault);
-}
 
 function applyDarkModeClass(){
   const mode = localSettings.darkMode || 'system';
@@ -3399,17 +3533,320 @@ async function toggleLiquidGlass(){
   showToast(localSettings.liquidGlass ? '🪟 Liquid glass ativado' : 'Liquid glass desativado');
 }
 
-async function setDarkMode(mode){
-  localSettings.darkMode = mode;
-  await persistLocalSettings(); // local only — never synced
-  softChange(() => applyDarkModeClass());
-  renderSettings();
+
+
+// ---------- Ícone do app: favicon, ecrã inicial iOS e manifest ----------
+function iconeTema(){
+  const tema = THEME_COLORS.find(x => x.key === (localSettings.themeColor || 'green')) || THEME_COLORS[0];
+  const key = localSettings.iconColor || 'tema';
+  return key === 'tema' ? tema : (THEME_COLORS.find(x => x.key === key) || tema);
+}
+function iconeSvg(ic, glass){
+  const o = glass ? 0.6 : 1;
+  const borda = glass ? "stroke='#ffffff' stroke-opacity='0.35' stroke-width='1.5'" : '';
+  return "<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'>" +
+    `<rect width='64' height='64' rx='14' fill='${ic.vault2}' fill-opacity='${o}' ${borda}/>` +
+    `<circle cx='22' cy='32' r='11' fill='none' stroke='${ic.brassLight}' stroke-width='3.5'/>` +
+    `<circle cx='42' cy='32' r='11' fill='none' stroke='#F6EFE2' stroke-width='3.5' opacity='.85'/>` +
+    '</svg>';
+}
+// Favicon: os navegadores atualizam ao vivo.
+function aplicarFavicon(){
+  const link = document.querySelector('link[rel="icon"]');
+  if(!link) return;
+  link.setAttribute('href', 'data:image/svg+xml,' + encodeURIComponent(iconeSvg(iconeTema(), localSettings.iconGlass === true)));
+}
+// Ecrã inicial do iPhone: lido no momento de "Adicionar ao ecrã principal".
+function atualizarIconeIOS(){
+  const link = document.querySelector('link[rel="apple-touch-icon"]');
+  if(!link) return;
+  const ic = iconeTema(), glass = localSettings.iconGlass === true, S = 180;
+  const c = document.createElement('canvas'); c.width = S; c.height = S;
+  const g = c.getContext('2d');
+  g.fillStyle = ic.vault2; g.fillRect(0, 0, S, S);
+  const k = S / 64 * 0.82, off = (S - 64 * k) / 2;
+  g.setTransform(k, 0, 0, k, off, off);
+  if(glass){ g.strokeStyle = 'rgba(255,255,255,0.35)'; g.lineWidth = 1.5; g.strokeRect(0.5, 0.5, 63, 63); }
+  g.lineWidth = 3.5;
+  g.strokeStyle = ic.brassLight; g.beginPath(); g.arc(22, 32, 11, 0, Math.PI * 2); g.stroke();
+  g.globalAlpha = 0.85; g.strokeStyle = '#F6EFE2'; g.beginPath(); g.arc(42, 32, 11, 0, Math.PI * 2); g.stroke();
+  g.globalAlpha = 1; g.setTransform(1, 0, 0, 1, 0, 0);
+  link.setAttribute('href', c.toDataURL('image/png'));
+}
+function decodeManifest(){
+  const link = document.querySelector('link[rel="manifest"]');
+  if(!link) return null;
+  const m = link.href.match(/base64,([A-Za-z0-9+/=]+)/);
+  if(!m) return null;
+  const bytes = Uint8Array.from(atob(m[1]), c => c.charCodeAt(0));
+  return { link, manifest: JSON.parse(new TextDecoder().decode(bytes)) };
+}
+function encodeManifest(link, manifest){
+  const json = new TextEncoder().encode(JSON.stringify(manifest));
+  let bin = ''; json.forEach(c => { bin += String.fromCharCode(c); });
+  link.href = 'data:application/manifest+json;base64,' + btoa(bin);
+}
+// Cores do manifest: a app instalada usa estas cores nas barras do sistema (lidas ao abrir).
+function setManifestColors(color, bg){
+  const d = decodeManifest(); if(!d) return;
+  if(d.manifest.theme_color === color && d.manifest.background_color === bg) return;
+  d.manifest.theme_color = color; d.manifest.background_color = bg;
+  encodeManifest(d.link, d.manifest);
+}
+function atualizarManifestIcone(){
+  const d = decodeManifest();
+  if(!d || !d.manifest.icons || !d.manifest.icons[0]) return;
+  const src = 'data:image/svg+xml,' + encodeURIComponent(iconeSvg(iconeTema(), localSettings.iconGlass === true));
+  if(d.manifest.icons[0].src === src) return;
+  d.manifest.icons[0].src = src;
+  encodeManifest(d.link, d.manifest);
+}
+function setThemeColorMeta(color, bg){
+  document.querySelectorAll('meta[name="theme-color"]').forEach(m => m.remove());
+  const m = document.createElement('meta');
+  m.name = 'theme-color'; m.id = 'themeColorMeta'; m.content = color;
+  document.head.appendChild(m);
+  setManifestColors(color, bg);
+}
+function updateThemeColorMeta(){
+  const isDark = document.body.classList.contains('dark');
+  const glass = localSettings.liquidGlass === true;
+  const theme = THEME_COLORS.find(t => t.key === (localSettings.themeColor || 'green')) || THEME_COLORS[0];
+  const color = glass ? (isDark ? '#16161B' : '#F6EFE2') : (isDark ? '#111114' : theme.vault);
+  const bg    = glass ? (isDark ? '#0E0E12' : '#EFE7D6') : (isDark ? '#16161B' : '#F6EFE2');
+  setThemeColorMeta(color, bg);
+}
+function applyIconAppearance(){
+  const ic = iconeTema();
+  const r = document.documentElement.style;
+  r.setProperty('--icon-tile', ic.vault2);
+  r.setProperty('--icon-accent', ic.brassLight);
+  r.setProperty('--icon-tile-stroke', localSettings.iconGlass === true ? 'rgba(255,255,255,0.35)' : 'transparent');
+  aplicarFavicon(); atualizarIconeIOS(); atualizarManifestIcone();
+}
+function renderIconControls(){
+  const prev = document.getElementById('iconPreview');
+  if(prev){
+    prev.innerHTML = '<div style="width:96px;height:96px;">' + iconeSvg(iconeTema(), localSettings.iconGlass === true).replace('<svg ', '<svg width="96" height="96" ') + '</div>';
+  }
+  const grid = document.getElementById('iconColorGrid');
+  if(grid){
+    if(!grid.firstChild){
+      grid.innerHTML = `<div class="theme-color-swatch" data-ikey="tema" title="Igual ao tema" onclick="setIconColor('tema')" style="background:linear-gradient(135deg, var(--vault) 50%, var(--brass-light) 50%);"></div>` +
+        THEME_COLORS.map(x => `<div class="theme-color-swatch" data-ikey="${x.key}" title="${x.label}" onclick="setIconColor('${x.key}')" style="background:${x.vault};"></div>`).join('');
+    }
+    const cur = localSettings.iconColor || 'tema';
+    grid.querySelectorAll('.theme-color-swatch').forEach(el => el.classList.toggle('selected', el.dataset.ikey === cur));
+  }
+  const sw = document.getElementById('swIconGlass');
+  if(sw) sw.className = 'switch' + (localSettings.iconGlass === true ? ' on' : '');
+}
+async function setIconColor(key){
+  localSettings.iconColor = key;
+  await persistLocalSettings();
+  softChange(() => applyIconAppearance());
+  renderIconControls();
+}
+async function toggleIconGlass(){
+  localSettings.iconGlass = !(localSettings.iconGlass === true);
+  await persistLocalSettings();
+  softChange(() => applyIconAppearance());
+  renderIconControls();
+  showToast(localSettings.iconGlass ? 'Ícone com efeito transparente' : 'Ícone sem efeito transparente');
+}
+function renderSplashControls(){
+  const grid = document.getElementById('splashBgGrid'); if(!grid) return;
+  const cur = localSettings.splashBg || 'tema';
+  if(!grid.firstChild){
+    grid.innerHTML = `<div class="theme-color-swatch" data-skey="tema" title="Igual ao tema" onclick="setSplashBg('tema')" style="background:linear-gradient(135deg, var(--vault) 50%, var(--brass-light) 50%);"></div>` +
+      `<div class="theme-color-swatch" data-skey="fundo" title="Fundo do app" onclick="setSplashBg('fundo')" style="background:linear-gradient(135deg, #F6EFE2 50%, #16161B 50%);"></div>` +
+      THEME_COLORS.map(x => `<div class="theme-color-swatch" data-skey="${x.key}" title="${x.label}" onclick="setSplashBg('${x.key}')" style="background:${x.vault};"></div>`).join('');
+  }
+  grid.querySelectorAll('.theme-color-swatch').forEach(el => el.classList.toggle('selected', el.dataset.skey === cur));
+}
+async function setSplashBg(key){
+  localSettings.splashBg = key;
+  await persistLocalSettings();
+  softChange(() => applySplashAppearance());
+  renderSplashControls();
 }
 
+// ---------- Imagem de fundo (só neste aparelho) ----------
+const GRAIN_SVG = "url(\"data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>\")";
+let bgTimer = null;
+function bgActive(){ return localSettings.bgImage && localSettings.bgEnabled !== false ? localSettings.bgImage : null; }
+function bgNum(k){ const v = Number(localSettings[k]); return isNaN(v) ? 0 : Math.max(0, Math.min(100, v)); }
+async function toggleBgImage(){
+  localSettings.bgEnabled = !(localSettings.bgEnabled !== false);
+  await persistLocalSettings();
+  applyBodyTone(); applyCustomBackground(); renderBgImageRow();
+  showToast(localSettings.bgEnabled !== false ? 'Imagem de fundo ativada' : 'Imagem de fundo desativada');
+}
+function imageTone(dataUrl){
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => {
+      try{
+        const c = document.createElement('canvas'); c.width = 24; c.height = 24;
+        const ctx = c.getContext('2d'); ctx.drawImage(img, 0, 0, 24, 24);
+        const d = ctx.getImageData(0, 0, 24, 24).data;
+        let sum = 0, n = 0;
+        for(let i = 0; i < d.length; i += 4){ sum += (0.2126 * d[i] + 0.7152 * d[i+1] + 0.0722 * d[i+2]) / 255; n++; }
+        resolve((sum / n) * 0.78 < 0.5 ? 'dark' : 'light');
+      }catch(e){ resolve('light'); }
+    };
+    img.onerror = () => resolve('light');
+    img.src = dataUrl;
+  });
+}
+function applyBodyTone(){
+  const img = bgActive();
+  document.body.classList.toggle('bg-ink-light', !!img && localSettings.bgTone === 'dark');
+  document.body.classList.toggle('bg-img', !!img);
+}
+function bgCss(img){
+  const dark = document.body.classList.contains('dark');
+  const V = bgNum('bgVeil') / 100;
+  const base = dark ? '14,14,18' : '20,16,12';
+  const baseA = ((dark ? 0.62 : 0.22) * (1 - V)).toFixed(3);
+  const cream = dark ? '22,22,28' : '246,239,226';
+  return `linear-gradient(rgba(${base},${baseA}), rgba(${base},${baseA})), linear-gradient(rgba(${cream},${V.toFixed(3)}), rgba(${cream},${V.toFixed(3)})), url("${img}")`;
+}
+function applyBgEffects(el){
+  const B = bgNum('bgBlur');
+  el.style.filter = B > 0 ? `blur(${(B * 0.2).toFixed(1)}px)` : '';
+  el.style.transform = B > 0 ? 'scale(1.04)' : '';
+  const g = document.getElementById('customBgGrain');
+  if(g){ g.style.backgroundImage = GRAIN_SVG; g.style.opacity = (B / 100 * 0.5).toFixed(3); }
+}
+function applyCustomBackground(){
+  const el = document.getElementById('customBg');
+  if(!el) return;
+  const img = bgActive();
+  if(img && !localSettings.bgTone){
+    imageTone(img).then(async t => { localSettings.bgTone = t; await persistLocalSettings(); applyBodyTone(); });
+  }
+  applyBodyTone();
+  applyBgEffects(el);
+  const want = img ? bgCss(img) : '';
+  if((el.dataset.bg || '') === want) return;
+  if((el.dataset.img || '') === (img || '')){
+    el.dataset.bg = want;
+    el.style.backgroundImage = want; el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center';
+    el.classList.toggle('on', !!want);
+    return;
+  }
+  clearTimeout(bgTimer);
+  el.classList.remove('on');
+  const delay = el.dataset.bg ? 260 : 30;
+  bgTimer = setTimeout(() => {
+    el.dataset.bg = want; el.dataset.img = img || '';
+    el.style.backgroundImage = want; el.style.backgroundSize = 'cover'; el.style.backgroundPosition = 'center';
+    if(want) el.classList.add('on');
+  }, delay);
+}
+function resizeBgToDataUrl(file){
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('leitura'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('imagem'));
+      img.onload = () => {
+        try{
+          const k = Math.min(1, 1080 / Math.max(img.naturalWidth, img.naturalHeight));
+          const c = document.createElement('canvas');
+          c.width = Math.round(img.naturalWidth * k); c.height = Math.round(img.naturalHeight * k);
+          c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+          let d = c.toDataURL('image/jpeg', 0.8);
+          if(d.length > 900000) d = c.toDataURL('image/jpeg', 0.6);
+          if(d.length > 900000) return reject(new Error('grande'));
+          resolve(d);
+        }catch(err){ reject(err); }
+      };
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+async function handleBgImage(input){
+  const file = input.files && input.files[0];
+  input.value = '';
+  if(!file || !file.type || !file.type.startsWith('image/')){ showToast('Escolha um ficheiro de imagem'); return; }
+  try{
+    localSettings.bgImage = await resizeBgToDataUrl(file);
+    localSettings.bgTone = await imageTone(localSettings.bgImage);
+    await persistLocalSettings();
+    applyCustomBackground(); renderBgImageRow();
+    showToast('Imagem de fundo aplicada');
+  }catch(e){ showToast('Não foi possível usar essa imagem (demasiado grande?)'); }
+}
+async function removeBgImage(){
+  delete localSettings.bgImage; delete localSettings.bgTone;
+  await persistLocalSettings();
+  applyCustomBackground(); renderBgImageRow();
+  showToast('Imagem de fundo removida');
+}
+async function setBgSetting(key, v, live){
+  localSettings[key] = Number(v);
+  const rg = document.getElementById(key === 'bgVeil' ? 'bgVeilRange' : 'bgBlurRange');
+  if(rg) rg.style.setProperty('--fill', bgNum(key) + '%');
+  applyCustomBackground();
+  const lab = document.querySelector(`#bgImageRow [data-bglabel="${key}"]`);
+  if(lab) lab.textContent = (key === 'bgVeil' ? 'Véu sobre a imagem' : 'Desfoque com granulação') + ': ' + bgNum(key) + '%';
+  if(!live) await persistLocalSettings();
+}
+function renderBgImageRow(){
+  const row = document.getElementById('bgImageRow'); if(!row) return;
+  const tem = !!localSettings.bgImage;
+  const on = localSettings.bgEnabled !== false;
+  if(!document.getElementById('swBg')){
+    row.innerHTML = `<div class="switch-row" style="margin-top:12px;"><div class="switch-row-text"><div class="switch-row-title">Imagem de fundo</div><div class="switch-row-sub">Mostra a imagem atrás da app. Desligada, a imagem fica guardada neste aparelho.</div></div><div class="switch" id="swBg" onclick="toggleBgImage()"></div></div><div id="bgContent"></div>`;
+  }
+  document.getElementById('swBg').className = 'switch' + (on ? ' on' : '');
+  const sl = (key, id, titulo, a, b) => `<div class="range-title" data-bglabel="${key}">${titulo}: ${bgNum(key)}%</div><input id="${id}" class="gl-range" type="range" min="0" max="100" step="1" value="${bgNum(key)}" style="--fill:${bgNum(key)}%;" oninput="setBgSetting('${key}', this.value, true)" onchange="setBgSetting('${key}', this.value, false)" /><div class="range-ends"><span>${a}</span><span>${b}</span></div>`;
+  document.getElementById('bgContent').innerHTML = on ? `<div class="field" style="margin-top:10px;"><div id="bgPreview" style="height:72px;border-radius:var(--r-md);border:1.5px solid var(--line);background:var(--cream-2);background-size:cover;background-position:center;margin-bottom:10px;"></div><div style="display:flex;gap:8px;"><label style="flex:1;display:block;margin:0;text-align:center;padding:12px;border-radius:var(--r-md);background:var(--vault);color:#fff;font-weight:700;font-size:13px;cursor:pointer;">Escolher imagem<input type="file" accept="image/*" style="display:none;" onchange="handleBgImage(this)" /></label>${tem ? `<button onclick="removeBgImage()" style="padding:12px 16px;border-radius:var(--r-md);border:1.5px solid var(--line);background:transparent;color:var(--terracotta);font-weight:700;font-size:13px;cursor:pointer;">Remover</button>` : ''}</div>${tem ? `<div class="chart-box" style="margin-top:12px;">${sl('bgVeil', 'bgVeilRange', 'Véu sobre a imagem', 'Normal', 'Opaco')}${sl('bgBlur', 'bgBlurRange', 'Desfoque com granulação', 'Nítido', 'Desfocado')}</div>` : ''}</div>` : '';
+  if(on && tem){ const pv = document.getElementById('bgPreview'); if(pv) pv.style.backgroundImage = `url("${localSettings.bgImage}")`; }
+}
+
+// ---------- Aparência: temas e modo (troca só as classes, para a animação acontecer) ----------
+function renderThemeGrid(){
+  renderThemeGrid();
+  updateThemeSwatches(localSettings.themeColor || 'green');
+}
+function updateThemeSwatches(key){
+  document.querySelectorAll('#themeColorGrid .theme-color-swatch').forEach(el => el.classList.toggle('selected', el.dataset.key === key));
+}
+function renderAparenciaControls(){
+  renderThemeGrid();
+  document.querySelectorAll('#darkModeSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.m === (localSettings.darkMode || 'system')));
+  const sw = document.getElementById('swGlass'); if(sw) sw.className = 'switch' + (localSettings.liquidGlass === true ? ' on' : '');
+  renderGlassControls();
+  renderBgImageRow();
+  renderIconControls();
+  renderSplashControls();
+}
+async function setThemeColor(key){
+  localSettings.themeColor = key;
+  await persistLocalSettings();
+  softChange(() => { applyThemeColor(key); applyIconAppearance(); applySplashAppearance(); });
+  updateThemeSwatches(key);
+  renderIconControls();
+  renderSplashControls();
+}
+async function setDarkMode(mode){
+  localSettings.darkMode = mode;
+  await persistLocalSettings();
+  softChange(() => { applyDarkModeClass(); applyBodyTone(); applyCustomBackground(); applySplashAppearance(); });
+  document.querySelectorAll('#darkModeSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.m === mode));
+}
 function applyAllAppearance(){
   applyThemeColor(localSettings.themeColor || 'green');
   applyDarkModeClass();
   applyLiquidGlass();
+  applySplashAppearance();
+  applyIconAppearance();
+  applyCustomBackground();
 }
 function openVault(id){
   const v = vaults.find(x=>x.id===id);
@@ -4009,26 +4446,41 @@ function fbStartListening(){
   if(!fbActive()) return;
   window.fb.listen(localSettings.fbHid, async (data, meta) => {
     if(meta.pending) return;
-    if(meta.by === window.fb.user.uid){ await saveSyncBase(normalizeRemote(data)); return; }
-    const merged = await fundirEAplicar(data);
-    if(MERGE.canon(merged) !== MERGE.canon(normalizeRemote(data))){
-      await window.fb.push(localSettings.fbHid, merged);
+    try{
+      if(meta.by === window.fb.user.uid){
+        await saveSyncBase(normalizeRemote(data));
+      } else {
+        const merged = await fundirEAplicar(data);
+        if(MERGE.canon(merged) !== MERGE.canon(normalizeRemote(data))){
+          await window.fb.push(localSettings.fbHid, merged);
+        }
+        await saveSyncBase(merged);
+        setSyncStatus('synced');
+      }
+    } finally {
+      // Primeira leitura da nuvem: liberta o arranque (ver loadAll)
+      if(window.__fbFirstSnap){ const r = window.__fbFirstSnap; window.__fbFirstSnap = null; r(); }
     }
-    await saveSyncBase(merged);
-    setSyncStatus('synced');
-
   });
 }
+
 async function fbPushState(){
   if(!fbActive()) return;
   try{
-    const remote = await window.fb.getState(localSettings.fbHid);
-    const merged = await fundirEAplicar(remote && remote.data ? remote.data : null);
-    await window.fb.push(localSettings.fbHid, merged);
+    const hid = localSettings.fbHid;
+    const base = syncBase || {};
+    const local = buildCloudPayload();
+    const merged = await window.fb.transactState(hid,
+      remote => MERGE.mergePayload(base, local, normalizeRemote(remote), tombs));
+    // Só aplica no ecrã depois de a escrita estar confirmada.
+    applyCloudData(merged);
+    if(pruneOrphanedBillData()) await persistMonthData();
+    await persistLocalOnlySilently();
+    renderAll(); renderMonth();
     await saveSyncBase(merged);
     localStorage.removeItem(PENDING_PUSH_KEY);
     setSyncStatus('synced');
-    logSyncEvent('success', 'Dados fundidos e enviados (Firebase)', '');
+    logSyncEvent('success', 'Dados fundidos e enviados (Firebase, transação)', '');
   }catch(e){
     setSyncStatus('nolink');
     logSyncEvent('error', 'Firebase: ' + (e.message || e), '');
@@ -4376,18 +4828,19 @@ async function confirmResetAll(){
   showToast('Tudo apagado'); goHome();
 }
 
-// Desbloqueio secreto: 5 toques rápidos na versão revelam (ou escondem) a opção do Modo Dev
+// 5 toques rápidos na versão ativam o Modo Dev (a aba Dev aparece). Desativar: interruptor no topo da aba Dev.
 let devTapCount = 0, devTapTimer = null;
 async function tapVersion(){
   clearTimeout(devTapTimer);
   devTapCount++;
   if(devTapCount >= 5){
     devTapCount = 0;
-    localSettings.devUnlocked = !localSettings.devUnlocked;
-    if(!localSettings.devUnlocked){ localSettings.devMode = false; }
+    if(localSettings.devMode){ showToast('Modo Dev já está ativo'); return; }
+    localSettings.devMode = true;
     await persistLocalSettings();
-    renderSettings();
-    showToast(localSettings.devUnlocked ? '🛠️ Modo Dev revelado' : 'Modo Dev escondido');
+    applyTabVisibility();
+    goDev();
+    showToast('🛠️ Modo Dev ativado');
     return;
   }
   devTapTimer = setTimeout(() => { devTapCount = 0; }, 1500);
@@ -4397,12 +4850,11 @@ async function toggleDevMode(){
   await persistLocalSettings();
   const devToggle = document.getElementById('devModeToggle');
   if(devToggle) devToggle.classList.toggle('on', !!localSettings.devMode);
-  const devPanel = document.getElementById('devModePanel');
-  if(devPanel) devPanel.style.display = localSettings.devMode ? '' : 'none';
-  const toolbar = document.getElementById('devToolbar');
-  if(toolbar) toolbar.style.display = localSettings.devMode ? '' : 'none';
+  applyTabVisibility();
+  renderDevScreen();
+  if(localSettings.devMode) goDev(); else goSettings();
   renderSyncLog();
-  showToast(localSettings.devMode ? '🛠️ Modo Dev ativado — barra flutuante visível em todas as telas' : 'Modo Dev desativado');
+  showToast(localSettings.devMode ? '🛠️ Modo Dev ativado' : 'Modo Dev desativado');
 }
 function devOpenEditVaults(){
   if(!localSettings.devMode){ showToast('Ative o Modo Dev primeiro'); return; }
@@ -4686,9 +5138,55 @@ function renderStats(){
   box.innerHTML = html;
 }
 
-function openSheet(html){ document.getElementById('sheet').innerHTML = html; document.getElementById('overlay').classList.add('show'); }
-function closeSheet(){ document.getElementById('overlay').classList.remove('show'); }
+let closeTimer = null;
+function openSheet(html){
+  clearTimeout(closeTimer);
+  const ov = document.getElementById('overlay'), sh = document.getElementById('sheet');
+  ov.classList.remove('closing');
+  sh.style.transform = ''; sh.style.transition = '';
+  sh.innerHTML = html;
+  ov.classList.add('show');
+}
+function closeSheet(){
+  const ov = document.getElementById('overlay'), sh = document.getElementById('sheet');
+  if(ov.classList.contains('show') && !ov.classList.contains('closing')){
+    ov.classList.add('closing');
+    clearTimeout(closeTimer);
+    closeTimer = setTimeout(() => {
+      ov.classList.remove('show', 'closing');
+      sh.style.transform = ''; sh.style.transition = '';
+    }, 270);
+  }
+}
 function closeSheetOnBackdrop(e){ if(e.target.id === 'overlay') closeSheet(); }
+(function setupSheetDrag(){
+  const sh = document.getElementById('sheet');
+  let d = null;
+  sh.addEventListener('pointerdown', e => {
+    const h = e.target.closest && e.target.closest('.sheet-handle');
+    if(!h) return;
+    d = { y: e.clientY, last: e.clientY, dy: 0, v: 0, lt: performance.now(), id: e.pointerId };
+    sh.style.transition = 'none';
+    try{ h.setPointerCapture(e.pointerId); }catch(_){}
+    e.preventDefault();
+  });
+  sh.addEventListener('pointermove', e => {
+    if(!d) return;
+    const now = performance.now(), dt = Math.max(1, now - d.lt);
+    d.v = (e.clientY - d.last) / dt; d.last = e.clientY; d.lt = now;
+    d.dy = Math.max(0, e.clientY - d.y);
+    sh.style.transform = 'translateY(' + d.dy + 'px)';
+  });
+  const fim = (cancelado) => {
+    if(!d) return;
+    const dy = d.dy, v = d.v; d = null;
+    sh.style.transition = 'transform 0.26s cubic-bezier(.4,0,.2,1)';
+    if(!cancelado && (dy > 90 || v > 0.6)){ sh.style.transform = 'translateY(100%)'; closeSheet(); }
+    else { sh.style.transform = ''; }
+  };
+  sh.addEventListener('pointerup', () => fim(false));
+  sh.addEventListener('pointercancel', () => fim(true));
+})();
 
 function sheetHeader(title){
   return `
@@ -6771,7 +7269,7 @@ loadAll();
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.19.0/firebase-app.js";
 import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signOut, onAuthStateChanged }
   from "https://www.gstatic.com/firebasejs/12.19.0/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, arrayUnion }
+import { getFirestore, doc, getDoc, setDoc, updateDoc, onSnapshot, arrayUnion, runTransaction }
   from "https://www.gstatic.com/firebasejs/12.19.0/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -6840,13 +7338,32 @@ window.fb = {
       cb(d.data, { by: d.by, updatedAt: d.updatedAt, pending: snap.metadata.hasPendingWrites });
     });
   },
+  // Leitura + escrita atómicas: a função de fusão é pura e pode repetir-se em caso de conflito.
+  async transactState(hid, mergeFn){
+    const uid = auth.currentUser.uid;
+    return runTransaction(db, async tx => {
+      const ref = doc(db,'households',hid);
+      const s = await tx.get(ref);
+      const remote = s.exists() ? (s.data().data || null) : null;
+      const merged = mergeFn(remote);
+      tx.set(ref, { data: merged, updatedAt: Date.now(), by: uid }, { merge: true });
+      return merged;
+    });
+  },
   stopListen(){ if(unsubscribe){ unsubscribe(); unsubscribe = null; } }
 };
 
+// Só avisa a app quando a sessão já foi resolvida (ou não existe).
+const authReady = new Promise(res => {
+  const unsub = onAuthStateChanged(auth, () => { unsub(); res(); });
+});
 onAuthStateChanged(auth, user => {
   window.dispatchEvent(new CustomEvent('fb-auth', { detail: user }));
 });
-window.dispatchEvent(new Event('firebase-ready'));
+authReady.then(() => {
+  window.__fbReady = true;
+  window.dispatchEvent(new Event('firebase-ready'));
+});
 </script>
 </body>
 </html>
