@@ -7,7 +7,7 @@
 <script>
 (function(){
   try{
-    var s = JSON.parse(localStorage.getItem('localSettings') || 'null') || {};
+    var s = JSON.parse(localStorage.getItem('dueto:' + 'localSettings') || 'null') || {};
     var V  = { green:'#1F3A2E', blue:'#1A2E4A', purple:'#2D1F4A', terracotta:'#4A2010', slate:'#1A2535' };
     var V2 = { green:'#2C4F3D', blue:'#243D63', purple:'#3D2C6A', terracotta:'#6A2E18', slate:'#243050' };
     var BL = { green:'#D9A949', blue:'#6AAFD4', purple:'#B890D4', terracotta:'#D4A060', slate:'#90B0C8' };
@@ -1811,7 +1811,7 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-r
 // Aplica tema e modo escuro antes da primeira pintura (evita o flash de cor errada)
 (function(){
   try{
-    var s = JSON.parse(localStorage.getItem('localSettings') || 'null') || {};
+    var s = JSON.parse(localStorage.getItem('dueto:' + 'localSettings') || 'null') || {};
     var T = {
       green:{v:'#1F3A2E',v2:'#2C4F3D',vl:'#3E6650',b:'#B8862B',bl:'#D9A949'},
       blue:{v:'#1A2E4A',v2:'#243D63',vl:'#2E5075',b:'#4A90C4',bl:'#6AAFD4'},
@@ -2348,14 +2348,32 @@ html { background: #F6EFE2; }
 <div class="toast" id="toast"></div>
 
 <script>
+// Espaço próprio do Dueto no armazenamento local. Só copia (nunca apaga) dados que são do Dueto
+// e que estavam sem prefixo, porque o Corrida+ usa alguns destes mesmos nomes no mesmo domínio.
+function migrarNamespaceLocal(){
+  try{
+    if(localStorage.getItem('dueto:ns') === '1') return;
+    ['vaults','txns','loans','names'].forEach(k => {
+      const v = localStorage.getItem(k);
+      if(v && localStorage.getItem('dueto:' + k) === null) localStorage.setItem('dueto:' + k, v);
+    });
+    const b = localStorage.getItem('bills');
+    if(b && localStorage.getItem('dueto:bills') === null){
+      try{ const o = JSON.parse(b); if(o && typeof o === 'object' && !Array.isArray(o)) localStorage.setItem('dueto:bills', b); }catch(e){}
+    }
+    const m = localStorage.getItem('monthData');
+    if(m && localStorage.getItem('dueto:monthData') === null && m.includes('"income"')) localStorage.setItem('dueto:monthData', m);
+    localStorage.setItem('dueto:ns', '1');
+  }catch(e){ console.warn('migrarNamespaceLocal:', e); }
+}
 if (!window.storage) {
   window.storage = {
     get: async (key) => {
-      const val = localStorage.getItem(key);
+      const val = localStorage.getItem('dueto:' + key);
       return val ? { value: val } : null;
     },
     set: async (key, value) => {
-      localStorage.setItem(key, value);
+      localStorage.setItem('dueto:' + key, value);
       return true;
     }
   };
@@ -2887,7 +2905,7 @@ async function loadAll(manual = false){
     await loadFromLocalStorage();
     setSplash('A sincronizar…');
     const primeiroSnap = new Promise(r => { window.__fbFirstSnap = r; });
-    if(localStorage.getItem(PENDING_PUSH_KEY)) await fbPushState(buildCloudPayload());
+    if(localStorage.getItem('dueto:' + PENDING_PUSH_KEY)) await fbPushState(buildCloudPayload());
     fbStartListening();
     if(isFirstLoad) await Promise.race([primeiroSnap, esperar(6000)]);
     await reclamarPerfil();
@@ -2896,7 +2914,7 @@ async function loadAll(manual = false){
     setSyncStatus('syncing');
     showLoadingState('Buscando dados da nuvem…');
     try{
-      const pendingPush = localStorage.getItem(PENDING_PUSH_KEY);
+      const pendingPush = localStorage.getItem('dueto:' + PENDING_PUSH_KEY);
       if(pendingPush){
         try{
           await loadFromLocalStorage(); // load the exact state that was pending
@@ -3004,7 +3022,7 @@ const PENDING_PUSH_KEY = 'pendingCloudPush';
 function scheduleCloudPush(){
   if(!syncUrl && !fbActive()){ setSyncStatus('nolink'); return; }
   setSyncStatus('saving');
-  try{ localStorage.setItem(PENDING_PUSH_KEY, JSON.stringify(buildCloudPayload())); }catch(e){}
+  try{ localStorage.setItem('dueto:' + PENDING_PUSH_KEY, JSON.stringify(buildCloudPayload())); }catch(e){}
   clearTimeout(syncPushTimer);
   syncPushTimer = setTimeout(pushToCloud, SYNC_DEBOUNCE_MS);
 }
@@ -3039,7 +3057,7 @@ async function pushToCloud(){
       signal: controller.signal
     });
     clearTimeout(timeoutId);
-    try{ localStorage.removeItem(PENDING_PUSH_KEY); }catch(e){}
+    try{ localStorage.removeItem('dueto:' + PENDING_PUSH_KEY); }catch(e){}
     setSyncStatus('synced');
     logSyncEvent('success', 'Dados enviados para a nuvem', `${Date.now()-pushStart}ms · ${body.length} bytes`);
   }catch(err){
@@ -3057,7 +3075,7 @@ async function pushToCloud(){
 
 window.addEventListener('pagehide', () => {
   try{
-    const pending = localStorage.getItem(PENDING_PUSH_KEY);
+    const pending = localStorage.getItem('dueto:' + PENDING_PUSH_KEY);
     if(pending && syncUrl && navigator.sendBeacon){
       navigator.sendBeacon(syncUrl, new Blob([pending], { type: 'text/plain;charset=utf-8' }));
     }
@@ -4378,7 +4396,7 @@ async function fbPushState(){
     await persistLocalOnlySilently();
     renderAll(); renderMonth();
     await saveSyncBase(merged);
-    localStorage.removeItem(PENDING_PUSH_KEY);
+    localStorage.removeItem('dueto:' + PENDING_PUSH_KEY);
     setSyncStatus('synced');
     logSyncEvent('success', 'Dados fundidos e enviados (Firebase, transação)', '');
   }catch(e){
@@ -4862,7 +4880,7 @@ function devImportData(){
           const payload = JSON.parse(JSON.stringify(buildCloudPayload()));
           await window.fb.overwriteState(localSettings.fbHid, payload);
           await saveSyncBase(normalizeRemote(payload));
-          localStorage.removeItem(PENDING_PUSH_KEY);
+          localStorage.removeItem('dueto:' + PENDING_PUSH_KEY);
           setSyncStatus('synced');
           logSyncEvent('success', 'Casal substituído pelo ficheiro importado', '');
         }catch(err){
@@ -7001,6 +7019,7 @@ if(window.matchMedia){
 const svEl = document.getElementById('splashVersion');
 if(svEl) svEl.textContent = 'v' + APP_VERSION;
 
+migrarNamespaceLocal();
 buildTabOverlay();
 loadAll();
 </script>
