@@ -2699,7 +2699,7 @@ async function loadFromLocalStorage(){
   try{ const v  = await window.storage.get('vaults');    vaults    = v  ? dictToArr(JSON.parse(v.value))  : []; }catch(e){}
   try{ const t  = await window.storage.get('txns');      txns      = t  ? dictToArr(JSON.parse(t.value))  : []; }catch(e){}
   try{ const l  = await window.storage.get('loans');     loans     = l  ? dictToArr(JSON.parse(l.value))  : []; }catch(e){}
-  try{ const n  = await window.storage.get('names');     names     = n  ? JSON.parse(n.value)  : { a:'Rodrigo', b:'Jacqueline' }; }catch(e){}
+  try{ const n  = await window.storage.get('names');     names     = n  ? JSON.parse(n.value)  : { a:'', b:'' }; }catch(e){}
   try{ const b  = await window.storage.get('bills');     bills     = b  ? dictToArr(JSON.parse(b.value))  : []; }catch(e){}
   try{ const md = await window.storage.get('monthData'); monthData = md ? JSON.parse(md.value) : {}; }catch(e){}
   try{ const st = await window.storage.get('appSettings'); appSettings = st ? { extraProfiles:[], ...JSON.parse(st.value) } : { extraProfiles:[] }; }catch(e){ appSettings = { extraProfiles:[] }; }
@@ -2911,6 +2911,7 @@ async function loadAll(manual = false){
     if(localStorage.getItem(PENDING_PUSH_KEY)) await fbPushState(buildCloudPayload());
     fbStartListening();
     if(isFirstLoad) await Promise.race([primeiroSnap, esperar(6000)]);
+    await reclamarPerfil();
     setSyncStatus('synced');
   } else if(syncUrl){
     setSyncStatus('syncing');
@@ -3344,15 +3345,13 @@ function goMonth(){
   renderMonth();
 }
 function openAparencia(){
-  renderAparenciaControls();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active','slide-r','slide-l'));
   const el = document.getElementById('screen-aparencia');
   el.classList.add('active','slide-r');
   activateTab('tabSettings');
-  renderSettings();
+  try{ renderAparenciaControls(); }catch(e){ console.error('Aparência:', e); showToast('Erro na Aparência: ' + e.message); }
   glassRefreshAll(false);
-  const appEl = document.getElementById('app');
-  if(appEl) appEl.scrollTop = 0;
+  const appEl = document.getElementById('app'); if(appEl) appEl.scrollTop = 0;
 }
 
 function closeAparencia(){
@@ -3811,7 +3810,10 @@ function renderBgImageRow(){
 
 // ---------- Aparência: temas e modo (troca só as classes, para a animação acontecer) ----------
 function renderThemeGrid(){
-  renderThemeGrid();
+  const grid = document.getElementById('themeColorGrid'); if(!grid) return;
+  if(!grid.firstChild){
+    grid.innerHTML = THEME_COLORS.map(t => `<div class="theme-color-swatch" data-key="${t.key}" title="${t.label}" onclick="setThemeColor('${t.key}')" style="background:${t.vault};"></div>`).join('');
+  }
   updateThemeSwatches(localSettings.themeColor || 'green');
 }
 function updateThemeSwatches(key){
@@ -4067,6 +4069,35 @@ function renderDetail(){
 }
 
 
+// ---------- Perfis por utilizador (dentro do casal) ----------
+// Cada conta com sessão fica ligada a um perfil: o primeiro a entrar fica com A, o segundo com B.
+// Só se edita o perfil próprio. Sem sessão (modo local), todos os perfis são editáveis.
+function meuUid(){ return (window.fb && window.fb.user && window.fb.user.uid) || null; }
+function meuPerfilKey(){
+  const uid = meuUid();
+  if(!uid) return 'a';
+  if(names.ownerA === uid) return 'a';
+  if(names.ownerB === uid) return 'b';
+  return null;
+}
+function perfilEhMeu(key){ return !meuUid() || meuPerfilKey() === key; }
+function garantirPerfilDoUtilizador(){
+  const u = window.fb && window.fb.user; if(!u) return false;
+  if(names.ownerA === u.uid || names.ownerB === u.uid) return false;
+  const key = !names.ownerA ? 'a' : (!names.ownerB ? 'b' : null);
+  if(!key) return false;
+  names['owner' + key.toUpperCase()] = u.uid;
+  if(!names[key] && u.displayName) names[key] = u.displayName;
+  return true;
+}
+async function reclamarPerfil(){
+  try{
+    if(!garantirPerfilDoUtilizador()) return;
+    await persistLocalOnlySilently();
+    scheduleCloudPush();
+    renderSettings(); renderProfileSwitcher();
+  }catch(e){ console.warn('reclamarPerfil:', e); }
+}
 function getProfiles(){
   const base = [
     { key:'a', name: names.a || 'Pessoa A', photo: names.photoA },
@@ -4077,6 +4108,12 @@ function getProfiles(){
 }
 
 function profilePhotoFor(key){
+  if(key === 'a' || key === 'b'){
+    const own = names['photo' + key.toUpperCase()];
+    if(own) return own;
+    if(meuUid() && meuPerfilKey() === key && window.fb.user.photoURL) return window.fb.user.photoURL;
+    return null;
+  }
   if(key === 'a') return names.photoA || null;
   if(key === 'b') return names.photoB || null;
   const ep = (appSettings.extraProfiles || []).find(p => p.key === key);
@@ -4134,9 +4171,9 @@ function renderSettings(){
         </div>
         <div class="profile-card-info">
           <div class="profile-card-name-display">${escapeHtml(p.name) || 'Sem nome'}</div>
-          <span class="profile-card-tag ${colorKey}">Perfil ${p.key.toUpperCase()}</span>
+          <span class="profile-card-tag ${colorKey}">${meuPerfilKey() === p.key ? 'Você' : (meuUid() ? 'Parceiro(a)' : 'Perfil ' + p.key.toUpperCase())}</span>
         </div>
-        <button class="profile-action-btn" onclick="openEditProfileSheet('${p.key}')">✏️ Editar</button>
+        ${perfilEhMeu(p.key) ? `<button class="profile-action-btn" onclick="openEditProfileSheet('${p.key}')">✏️ Editar</button>` : ''}
       </div>
     </div>`;
   }).join('');
@@ -4147,16 +4184,7 @@ function renderSettings(){
   const currentDark = localSettings.darkMode || 'system';
   document.querySelectorAll('#darkModeSeg .seg-opt').forEach(el => el.classList.toggle('active', el.dataset.m === currentDark));
 
-  const grid = document.getElementById('themeColorGrid');
-  if(grid){
-    const currentColor = localSettings.themeColor || 'green';
-    grid.innerHTML = THEME_COLORS.map(t => `
-      <div class="theme-color-swatch ${t.key===currentColor?'selected':''}"
-           style="background:${t.vault};"
-           title="${t.label}"
-           onclick="setThemeColor('${t.key}')"></div>
-    `).join('');
-  }
+  renderThemeGrid();
 
   const vLabel = document.getElementById('appVersionLabel');
   if(vLabel) vLabel.textContent = APP_VERSION;
@@ -4180,6 +4208,7 @@ function renderSettings(){
 let profileNameTimer = null;
 function openEditProfileSheet(key){
   const p = getProfiles().find(x => x.key === key); if(!p) return;
+  if(!perfilEhMeu(key)){ showToast('Só pode editar o seu perfil'); return; }
   const isBase = (key === 'a' || key === 'b');
   const avatarBg = p.photo ? `url(${p.photo})` : '';
   const avatarText = p.photo ? '' : (p.name.trim().charAt(0) || key).toUpperCase();
@@ -4458,6 +4487,7 @@ function fbStartListening(){
         setSyncStatus('synced');
       }
     } finally {
+      await reclamarPerfil();
       // Primeira leitura da nuvem: liberta o arranque (ver loadAll)
       if(window.__fbFirstSnap){ const r = window.__fbFirstSnap; window.__fbFirstSnap = null; r(); }
     }
@@ -4663,6 +4693,7 @@ function resizeImageToDataUrl(file, size = 200){
 }
 
 async function handleProfilePhotoChange(key, inputEl){
+  if(!perfilEhMeu(key)){ inputEl.value = ''; showToast('Só pode alterar o seu perfil'); return; }
   const file = inputEl.files && inputEl.files[0];
   if(!file) return;
   if(!file.type || !file.type.startsWith('image/')){ showToast('Selecione um arquivo de imagem.'); inputEl.value=''; return; }
