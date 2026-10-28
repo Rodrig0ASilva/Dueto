@@ -2177,6 +2177,7 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-r
         <div class="menu-item" onclick="devOpenEditBills()"><span class="ic">🧾</span><div><div class="menu-item-title">Editar contas</div><div class="menu-item-sub">Nome, valor e cofre destino</div></div></div>
         <div class="menu-item" onclick="devExportData()"><span class="ic">📤</span><div><div class="menu-item-title">Exportar dados (JSON)</div><div class="menu-item-sub">Cópia completa dos dados</div></div></div>
         <div class="menu-item" onclick="devImportData()"><span class="ic">📥</span><div><div class="menu-item-title">Importar dados (JSON)</div><div class="menu-item-sub">Substitui os dados atuais</div></div></div>
+        <div class="menu-item" onclick="devOpenLinkLegacy()"><span class="ic">🔗</span><div><div class="menu-item-title">Vincular dados antigos ao meu usuário</div><div class="menu-item-sub">Passa registos pessoais e órfãos para o casal e para o seu perfil</div></div></div>
         <div class="menu-item" onclick="devCheckForUpdate()"><span class="ic">🔄</span><div><div class="menu-item-title">Verificar atualização</div><div class="menu-item-sub">Compara com a versão publicada</div></div></div>
       </div>
     <div class="section-head" style="margin-top:20px;"><div class="section-title">Sincronização</div></div>
@@ -2360,7 +2361,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.9.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.10.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 const SPLASH_MIN_MS = 1200;
 const splashInicio = Date.now();
@@ -4626,6 +4627,58 @@ async function toggleDevMode(){
   renderSyncLog();
   showToast(localSettings.devMode ? '🛠️ Modo Dev ativado' : 'Modo Dev desativado');
 }
+// ---------- Dados antigos: contar e vincular ao utilizador (Modo Dev) ----------
+function devContarDadosAntigos(){
+  const existe = id => vaults.some(v => v.id === id);
+  return {
+    cofresPessoais: vaults.filter(v => v.ownerId).length,
+    contasPessoais: bills.filter(b => b.ownerId).length,
+    emprestimosSemCofre: loans.filter(l => !existe(l.vaultId)).length,
+    emprestimosSemMembro: loans.filter(l => l.who !== 'a' && l.who !== 'b').length,
+    movimentosSemCofre: txns.filter(t => !existe(t.vaultId)).length
+  };
+}
+// Quem faz a ação é sempre o membro logado (sem seletor entre Membro 1 e Membro 2).
+function quemLogadoHtml(id){
+  const k = meuPerfilKey() || 'a';
+  const nome = names[k] || (k === 'a' ? 'Membro 1' : 'Membro 2');
+  return `<input type="hidden" id="${id}" value="${k}" /><div class="section-sub" style="padding:10px 2px;font-weight:700;">${escapeHtml(nome)} (você)</div>`;
+}
+function devOpenLinkLegacy(){
+  if(!localSettings.devMode){ showToast('Ative o Modo Dev primeiro'); return; }
+  const c = devContarDadosAntigos();
+  const total = c.cofresPessoais + c.contasPessoais + c.emprestimosSemCofre + c.emprestimosSemMembro + c.movimentosSemCofre;
+  openSheet(`${sheetHeader('Dados antigos')}
+    <div class="sheet-sub">Registos de quando havia cofres e contas pessoais, ou sem ligação a um cofre ou a um membro. Vincular passa-os para o casal e para o seu perfil.</div>
+    <div class="stat-cards">
+      <div class="stat-card"><div class="stat-card-label">Cofres pessoais</div><div class="stat-card-value">${c.cofresPessoais}</div></div>
+      <div class="stat-card"><div class="stat-card-label">Contas pessoais</div><div class="stat-card-value">${c.contasPessoais}</div></div>
+      <div class="stat-card"><div class="stat-card-label">Empréstimos sem cofre</div><div class="stat-card-value">${c.emprestimosSemCofre}</div></div>
+      <div class="stat-card"><div class="stat-card-label">Empréstimos sem membro</div><div class="stat-card-value">${c.emprestimosSemMembro}</div></div>
+      <div class="stat-card"><div class="stat-card-label">Movimentos sem cofre</div><div class="stat-card-value">${c.movimentosSemCofre}</div></div>
+    </div>
+    <div class="section-sub" style="font-size:11px;margin:10px 2px;">Os que não tiverem cofre são ligados ao primeiro cofre da lista. Confira depois, em Cofres.</div>
+    <button class="btn btn-primary" ${total ? '' : 'disabled style="opacity:.4;"'} onclick="devVincularDadosAntigos()">Vincular ao meu usuário</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Fechar</button>`);
+}
+async function devVincularDadosAntigos(){
+  if(!localSettings.devMode){ showToast('Ative o Modo Dev primeiro'); return; }
+  const slot = meuPerfilKey() || 'a';
+  const existe = id => vaults.some(v => v.id === id);
+  let n = 0;
+  vaults.forEach(v => { if(v.ownerId){ delete v.ownerId; n++; } });
+  bills.forEach(b => { if(b.ownerId){ delete b.ownerId; n++; } });
+  loans.forEach(l => { if(l.who !== 'a' && l.who !== 'b'){ l.who = slot; n++; } });
+  const primeiro = vaults[0];
+  if(primeiro){
+    loans.forEach(l => { if(!existe(l.vaultId)){ l.vaultId = primeiro.id; n++; } });
+    txns.forEach(t => { if(!existe(t.vaultId)){ t.vaultId = primeiro.id; n++; } });
+  }
+  await persistVaults(); await persistBills(); await persistLoans(); await persistTxns();
+  closeSheet();
+  renderAll(); renderMonth(); renderLoans(); renderStats();
+  showToast(n ? `${n} registo(s) vinculado(s)` : 'Nada a vincular');
+}
 function devOpenEditVaults(){
   if(!localSettings.devMode){ showToast('Ative o Modo Dev primeiro'); return; }
   if(vaults.length === 0){ showToast('Nenhum cofre para editar'); return; }
@@ -5206,7 +5259,7 @@ function openLoanSheet(){
   const v     = vaults.find(x=>x.id===currentVaultId);
   const nameA = names.a || 'Membro 1';
   const nameB = names.b || 'Membro 2';
-  const whoField = `<select id="loanWho"><option value="">Selecione</option><option value="a">${nameA}</option><option value="b">${nameB}</option></select>`;
+  const whoField = quemLogadoHtml('loanWho');
   openSheet(`
     ${sheetHeader(`Pegar emprestado`)}
     <div class="sheet-sub">Tire um valor do cofre "${escapeHtml(v.name)}" combinando em quantas vezes vai devolver.</div>
@@ -5274,7 +5327,7 @@ function openPayInstallment(loanId){
   const sourceVault = vaults.find(v=>v.id===loan.vaultId);
   const autoReturn  = sourceVault && sourceVault.goal && sourceVault.balance < sourceVault.goal;
   const nameA = names.a || 'Membro 1'; const nameB = names.b || 'Membro 2';
-  const payWhoField = `<select id="paymentWho"><option value="">Selecione</option><option value="a">${nameA}</option><option value="b">${nameB}</option></select>`;
+  const payWhoField = quemLogadoHtml('paymentWho');
   const destinationOptions = autoReturn ? '' : `
     <option value="${loan.vaultId}">Voltar para ${sourceVault ? escapeHtml(sourceVault.name) : 'este cofre'}</option>
     <option value="conta">Conta principal</option>
@@ -5424,7 +5477,7 @@ function openAdvancePaymentSheet(loanId){
     ${vaults.filter(v=>v.id!==loan.vaultId).map(v=>`<option value="${v.id}">Outro cofre: ${escapeHtml(v.name)}</option>`).join('')}`;
   const helpText = autoReturn
     ? '<div class="field"><div class="section-sub">A meta deste cofre ainda não foi batida. O valor será devolvido a ele automaticamente.</div></div>' : '';
-  const whoField = `<select id="advanceWho"><option value="">Selecione</option><option value="a">${nameA}</option><option value="b">${nameB}</option></select>`;
+  const whoField = quemLogadoHtml('advanceWho');
   openSheet(`
     ${sheetHeader(`Adiantar pagamento`)}
     <div class="sheet-sub">Empréstimo "${escapeHtml(loan.note || 'sem nota')}" — restam <b>${fmt(loan.remaining)}</b>. Pague qualquer valor à frente das parcelas normais.</div>
