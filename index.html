@@ -2360,7 +2360,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.9.1';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.9.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 const SPLASH_MIN_MS = 1200;
 const splashInicio = Date.now();
@@ -4063,6 +4063,7 @@ function testarIndex2(){
   location.href = new URL('index2.html', location.href).href;
 }
 function renderSettings(){
+  renderMembros();
   const dRow = document.getElementById('devSwitchRow');
   if(dRow) dRow.style.display = (localSettings && (localSettings.devUnlocked || localSettings.devMode)) ? '' : 'none';
   atualizarBotaoVersao();
@@ -4409,7 +4410,15 @@ window.addEventListener('firebase-ready', () => {
 
 function renderMembros(){
   const box = document.getElementById('membrosBox'); if(!box) return;
-  if(!(window.fb && window.fb.user && localSettings.fbHid)){ box.innerHTML = ''; return; }
+  if(!(window.fb && window.fb.user)){ box.innerHTML = ''; return; }
+  if(!localSettings.fbHid){
+    const u = window.fb.user;
+    const avatar = u.photoURL
+      ? `<div class="income-avatar a" style="background-image:url(${u.photoURL});background-size:cover;background-position:center;"></div>`
+      : `<div class="income-avatar a">${escapeHtml((u.displayName || '?').charAt(0).toUpperCase())}</div>`;
+    box.innerHTML = `<div class="section-head" style="margin-top:12px;"><div class="section-title">Membros do casal</div></div><div class="menu-list"><div class="menu-item" style="cursor:default;">${avatar}<div style="flex:1;min-width:0;"><div class="menu-item-title">${escapeHtml(u.displayName || u.email || 'Você')}</div><div class="menu-item-sub">Você · ainda sem casal</div></div></div></div>`;
+    return;
+  }
   const linha = (k) => {
     const nome = names[k] || (k === 'a' ? 'Membro 1' : 'Membro 2');
     const foto = profilePhotoFor(k);
@@ -4463,12 +4472,15 @@ function fbCreateSheet(){
 }
 async function fbCreateConfirmed(){
   try{
-    const r = await window.fb.createHousehold(buildCloudPayload());
+    garantirPerfilDoUtilizador();
+    await persistLocalOnlySilently();
+    const payload = JSON.parse(JSON.stringify(buildCloudPayload())); // o Firestore não aceita undefined
+    const r = await window.fb.createHousehold(payload);
     localSettings.fbHid = r.hid; localSettings.fbCode = r.code;
     await persistLocalSettings();
     fbStartListening(); closeSheet(); renderFbAccount();
     showToast('Casal criado. Código: ' + r.code);
-  }catch(e){ showToast('Erro ao criar casal: ' + (e.message || e)); }
+  }catch(e){ console.error('Criar casal:', e); showToast('Erro ao criar casal: ' + (e.code || e.message || e)); }
 }
 function fbJoinSheet(){
   openSheet(`${sheetHeader('Entrar com código')}
@@ -4486,7 +4498,8 @@ async function fbJoinConfirmed(){
     if(st && st.data) applyCloudData(st.data);
     localSettings.fbHid = hid; localSettings.fbCode = code.toUpperCase();
     await persistLocalSettings(); await persistLocalOnlySilently();
-    fbStartListening(); closeSheet(); renderAll(); renderMonth(); renderFbAccount();
+    garantirPerfilDoUtilizador(); await persistLocalOnlySilently();
+    fbStartListening(); scheduleCloudPush(); closeSheet(); renderAll(); renderMonth(); renderFbAccount();
     showToast('Casal conectado!');
   }catch(e){ showToast('Não foi possível entrar: ' + (e.message || e)); }
 }
