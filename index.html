@@ -4848,14 +4848,32 @@ function devImportData(){
       const text = await file.text();
       const data = JSON.parse(text);
       if(!confirm(`Importar dados de "${file.name}"? Isso vai SUBSTITUIR todos os dados atuais.`)) return;
-      if(Array.isArray(data.vaults))   vaults    = data.vaults;
-      if(Array.isArray(data.txns))     txns      = data.txns;
-      if(Array.isArray(data.loans))    loans     = data.loans;
-      if(Array.isArray(data.bills))    bills     = data.bills;
-      if(data.monthData)               monthData = data.monthData;
-      if(data.names)                   names     = data.names;
-      await persistVaults(); await persistTxns(); await persistLoans(); await persistBills(); await persistMonthData(); await persistNames();
-      showToast('Dados importados com sucesso!'); renderAll(); renderMonth();
+      // Aceita os dois formatos: listas (antigo) e dicionários por ID (schemaVersion 2).
+      if(data.vaults !== undefined)  vaults    = dictToArr(data.vaults);
+      if(data.txns !== undefined)    txns      = dictToArr(data.txns);
+      if(data.loans !== undefined)   loans     = dictToArr(data.loans);
+      if(data.bills !== undefined)   bills     = dictToArr(data.bills);
+      if(data.monthData)             monthData = data.monthData;
+      if(data.names)                 names     = data.names;
+      if(data.appSettings)           appSettings = { ...data.appSettings };
+      await persistVaults(); await persistTxns(); await persistLoans(); await persistBills(); await persistMonthData(); await persistNames(); await persistAppSettings();
+      if(fbActive() && confirm('Também substituir os dados do casal na nuvem por este ficheiro?\n\nA outra pessoa passa a ver exatamente este conteúdo, sem fusão.')){
+        try{
+          const payload = JSON.parse(JSON.stringify(buildCloudPayload()));
+          await window.fb.overwriteState(localSettings.fbHid, payload);
+          await saveSyncBase(normalizeRemote(payload));
+          localStorage.removeItem(PENDING_PUSH_KEY);
+          setSyncStatus('synced');
+          logSyncEvent('success', 'Casal substituído pelo ficheiro importado', '');
+        }catch(err){
+          console.error('Substituir casal:', err);
+          logSyncEvent('error', 'Substituir casal: ' + (err.code || err.message || err), '');
+          showToast('Erro ao substituir o casal: ' + (err.code || err.message || err));
+        }
+      }
+      closeSheet();
+      showToast(`Importado: ${vaults.length} cofres, ${txns.length} movimentos, ${loans.length} empréstimos, ${bills.length} contas`);
+      renderAll(); renderMonth(); renderLoans(); renderStats(); renderSettings();
     }catch(err){ showToast('Erro ao importar: ' + err.message); }
   };
   input.click();
@@ -7059,6 +7077,10 @@ window.fb = {
       const d = snap.data();
       cb(d.data, { by: d.by, updatedAt: d.updatedAt, pending: snap.metadata.hasPendingWrites });
     });
+  },
+  // Substitui o conteúdo do casal por completo (sem fusão). updateDoc troca o campo inteiro.
+  async overwriteState(hid, payload){
+    await updateDoc(doc(db,'households',hid), { data: payload, updatedAt: Date.now(), by: auth.currentUser.uid });
   },
   // Leitura + escrita atómicas: a função de fusão é pura e pode repetir-se em caso de conflito.
   async transactState(hid, mergeFn){
