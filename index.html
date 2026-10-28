@@ -2121,16 +2121,7 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-r
     <!-- CONTA -->
     <div class="section-head" style="margin-top:6px;"><div class="section-title">Conta</div></div>
     <div id="fbAccountBox" class="section-sub">Carregando…</div>
-
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Perfis</div></div>
-    <div id="profileCardsList"></div>
-    <div class="add-profile-btn" onclick="addProfile()">＋ Adicionar perfil</div>
-
-    <div class="section-head" style="margin-top:20px;"><div class="section-title">Ver cofres e contas de</div></div>
-    <div class="profile-switcher-slot"></div>
-    <div class="section-sub" id="profileSwitcherHint" style="margin:-8px 2px 0; font-size:11px; line-height:1.5;">
-      Escolha se quer ver os cofres e contas compartilhados da casa, ou só os do seu perfil pessoal. O padrão é Casa.
-    </div>
+    <div id="membrosBox"></div>
 
     <!-- PREFERÊNCIAS -->
     <div class="section-head" style="margin-top:24px;"><div class="section-title">Preferências</div></div>
@@ -2505,8 +2496,8 @@ const EMOJIS = ['🏦','🚗','💼','🏠','✈️','🎓','💍','🐶','🏥'
 let bills = [];
 let monthData = {};
 let currentMonthKey = defaultReferenceMonthKey();
-let appSettings = { extraProfiles: [] };
-let localSettings = { darkMode: 'system', themeColor: 'green', showStats: false, currentProfile: 'casa' };
+let appSettings = {};
+let localSettings = { darkMode: 'system', themeColor: 'green', showStats: false };
 
 let syncUrl = '';                 // configured in Settings, local-only, never sent to the cloud
 let syncPushTimer = null;         // debounce timer for outgoing pushes
@@ -2594,29 +2585,16 @@ function billAmount(entry, bill){ return entry.billOverrides.hasOwnProperty(bill
 function isBillDueThisMonth(b){
   if(b.dueMonthKey && b.dueMonthKey !== currentMonthKey) return false;
   if(b.endMonthKey && currentMonthKey > b.endMonthKey) return false;
-  return inScope(b.ownerId);
+  return true;
 }
 function payToVaultName(b){ const v = vaults.find(x=>x.id===b.payToVaultId); return v ? escapeHtml(v.name) : 'origem'; }
-function currentScope(){ return localSettings.currentProfile || 'casa'; }
-function inScope(ownerId){ const scope = currentScope(); return scope === 'casa' ? !ownerId : ownerId === scope; }
-function visibleVaults(){ return vaults.filter(v => inScope(v.ownerId)); }
-function isLoanInScope(l){
-  const scope = currentScope();
-  if(scope !== 'casa' && l.who === scope) return true;
-  const v = vaults.find(x=>x.id===l.vaultId);
-  return v ? inScope(v.ownerId) : inScope(null);
-}
-function scopeLabel(scope){ if(scope === 'casa') return 'Casa'; return names[scope] || (scope === 'a' ? 'Pessoa A' : 'Pessoa B'); }
 function totalIncomeBySource(entry, source){ return (entry.income.a[source]||0) + (entry.income.b[source]||0); }
 function spentBySource(entry, source){
   let total = 0;
   Object.entries(entry.billsPaid).forEach(([billId, split]) => {
-    const bill = bills.find(b => b.id === billId);
-    const ownerId = bill ? bill.ownerId : null;
-    if(!inScope(ownerId)) return;
     total += (split[source]||0);
   });
-  if(currentScope() === 'casa' && entry.vaultTransfers && entry.vaultTransfers[source]) total += entry.vaultTransfers[source];
+  if(entry.vaultTransfers && entry.vaultTransfers[source]) total += entry.vaultTransfers[source];
   return total;
 }
 function remainingBySource(entry, source){ return totalIncomeBySource(entry, source) - spentBySource(entry, source); }
@@ -2702,7 +2680,7 @@ async function loadFromLocalStorage(){
   try{ const n  = await window.storage.get('names');     names     = n  ? JSON.parse(n.value)  : { a:'', b:'' }; }catch(e){}
   try{ const b  = await window.storage.get('bills');     bills     = b  ? dictToArr(JSON.parse(b.value))  : []; }catch(e){}
   try{ const md = await window.storage.get('monthData'); monthData = md ? JSON.parse(md.value) : {}; }catch(e){}
-  try{ const st = await window.storage.get('appSettings'); appSettings = st ? { extraProfiles:[], ...JSON.parse(st.value) } : { extraProfiles:[] }; }catch(e){ appSettings = { extraProfiles:[] }; }
+  try{ const st = await window.storage.get('appSettings'); appSettings = st ? JSON.parse(st.value) : {}; }catch(e){ appSettings = {}; }
 }
 
 // Fusão a 3 vias com lápides (ver DOCUMENTACAO: sincronização)
@@ -2807,7 +2785,7 @@ function applyCloudData(data){
   monthData = (data.monthData && typeof data.monthData === 'object') ? data.monthData : {};
   names     = (data.names && typeof data.names === 'object') ? data.names : { a:'', b:'' };
   const cloudApp = (data.appSettings && typeof data.appSettings === 'object') ? data.appSettings : {};
-  appSettings = { extraProfiles: [], ...cloudApp };
+  appSettings = { ...cloudApp };
 }
 
 async function persistLocalOnlySilently(){
@@ -2972,7 +2950,7 @@ async function loadAll(manual = false){
   if(loadingEl) loadingEl.style.display = 'none';
   renderAll();
   renderMonth();
-  renderProfileSwitcher();
+  
 
   if(!splashFechada){
     if(await consumePendingUpdateNotice()){
@@ -3012,7 +2990,7 @@ async function safeSet(key, value){
 }
 
 function buildCloudPayload(){
-  const sharedAppSettings = { extraProfiles: appSettings.extraProfiles };
+  const sharedAppSettings = {};
   return {
     schemaVersion: SCHEMA_VERSION,
     vaults: arrToDict(vaults), txns: arrToDict(txns), loans: arrToDict(loans), bills: arrToDict(bills),
@@ -3376,7 +3354,7 @@ function renderDevScreen(){
 function goSettings(){
   showScreen('screen-settings'); activateTab('tabSettings');
   renderSettings();
-  renderProfileSwitcher();
+  
 }
 function goForecast(){
   showScreen('screen-forecast'); activateTab(null);
@@ -3402,7 +3380,7 @@ function applyTabVisibility(){
     goMonth();
   }
 
-  const showFeira = currentScope() === 'casa';
+  const showFeira = true;
   const feiraTab = document.getElementById('tabFeira');
   feiraTab.classList.toggle('hidden-tab', !showFeira);
   if(!showFeira && document.getElementById('screen-feira').classList.contains('active')){
@@ -3852,64 +3830,17 @@ function applyAllAppearance(){
 }
 function openVault(id){
   const v = vaults.find(x=>x.id===id);
-  if(!v || !inScope(v.ownerId)) return;
+  if(!v) return;
   currentVaultId = id; showScreen('screen-detail'); activateTab(null);
   renderDetail();
 }
 
-function whoLabel(w){ return w === 'a' ? (names.a||'Pessoa A') : (names.b||'Pessoa B'); }
-
-async function pickProfile(scope){
-  localSettings.currentProfile = scope;
-  await persistLocalSettings();
-  softChange(() => renderProfileSwitcher());
-  applyTabVisibility();
-  renderAll();
-  renderMonth();
-  if(document.getElementById('screen-detail').classList.contains('active')){
-    const v = vaults.find(x=>x.id===currentVaultId);
-    if(!v || !inScope(v.ownerId)) goHome(); else renderDetail();
-  }
-  showToast(`Vendo: ${scopeLabel(scope)}`);
-}
-function renderProfileSwitcher(){
-  const slots = document.querySelectorAll('.profile-switcher-slot'); if(slots.length === 0) return;
-  const scope = currentScope();
-  const options = [{ key:'casa', label:'🏠 Casa' }];
-  if(names.a && names.a.trim()) options.push({ key:'a', label:`👤 ${names.a}` });
-  if(names.b && names.b.trim()) options.push({ key:'b', label:`👤 ${names.b}` });
-  if(options.length === 1){
-    document.querySelectorAll('.profile-switcher-slot').forEach(el => el.innerHTML = '');
-    const hint = document.getElementById('profileSwitcherHint');
-    if(hint) hint.textContent = 'Dê um nome a "Pessoa A" (e "Pessoa B", se usar o app a dois) logo acima, em Perfis, para liberar espaços pessoais separados da Casa.';
-    if(scope !== 'casa') pickProfile('casa');
-    return;
-  }
-  const hint = document.getElementById('profileSwitcherHint');
-  if(hint) hint.textContent = 'Escolha se quer ver os cofres e contas compartilhados da casa, ou só os do seu perfil pessoal. O padrão é Casa.';
-  if(scope !== 'casa' && !options.some(o => o.key === scope)){
-    pickProfile('casa');
-    return;
-  }
-  // Só recria o seletor quando as opções mudaram. Caso contrário, atualiza apenas a classe
-  // "active": o elemento continua o mesmo, então a gota e as cores animam em vez de pular.
-  const sig = options.map(o => o.key + '|' + o.label).join(',');
-  const html = `<div class="seg" style="margin:0 0 14px;">${options.map(o=>`<div class="seg-opt ${o.key===scope?'active':''}" data-key="${o.key}" onclick="pickProfile('${o.key}')">${o.label}</div>`).join('')}</div>`;
-  slots.forEach(el => {
-    const seg = el.querySelector('.seg');
-    if(!seg || el.dataset.sig !== sig){
-      el.dataset.sig = sig;
-      el.innerHTML = html;
-    } else {
-      seg.querySelectorAll('.seg-opt').forEach(o => o.classList.toggle('active', o.dataset.key === scope));
-    }
-  });
-}
+function whoLabel(w){ return w === 'a' ? (names.a||'Membro 1') : (names.b||'Membro 2'); }
 
 function renderAll(){
-  const scopedVaults = visibleVaults();
+  const scopedVaults = vaults;
   const totalGuardado = scopedVaults.filter(v => !isTemporaryVault(v)).reduce((s,v)=> s + Math.max(v.balance,0), 0);
-  const totalDevido   = loans.filter(isLoanInScope).reduce((s,l)=> s + l.remaining, 0);
+  const totalDevido   = loans.reduce((s,l)=> s + l.remaining, 0);
   document.getElementById('totalGuardado').textContent = fmt(totalGuardado);
   document.getElementById('totalDevido').textContent   = fmt(totalDevido);
 
@@ -3917,7 +3848,7 @@ function renderAll(){
   document.getElementById('vaultCount').textContent = scopedVaults.length + (scopedVaults.length===1?' cofre':' cofres');
 
   if(scopedVaults.length === 0){
-    list.innerHTML = `<div class="empty-note">Nenhum cofre ${currentScope()==='casa' ? 'da casa' : 'pessoal'} ainda. Crie o primeiro.</div>`;
+    list.innerHTML = `<div class="empty-note">Nenhum cofre ainda. Crie o primeiro.</div>`;
   } else {
     list.innerHTML = scopedVaults.map(v => {
       const vaultLoans    = loans.filter(l => l.vaultId === v.id && l.remaining > 0);
@@ -3959,8 +3890,7 @@ function renderAll(){
     }).join('');
   }
 
-  const scopedVaultIds = new Set(scopedVaults.map(v=>v.id));
-  const recent = [...txns].filter(t => scopedVaultIds.has(t.vaultId)).sort((a,b)=>b.ts-a.ts).slice(0,8);
+  const recent = [...txns].filter(t => scopedVaults.some(v => v.id === t.vaultId)).sort((a,b)=>b.ts-a.ts).slice(0,8);
   document.getElementById('activityList').innerHTML = recent.length === 0
     ? '<div class="empty-note">Sem movimentos ainda.</div>'
     : recent.map(t => activityRowHtml(t)).join('');
@@ -4083,41 +4013,31 @@ function meuPerfilKey(){
 function perfilEhMeu(key){ return !meuUid() || meuPerfilKey() === key; }
 function garantirPerfilDoUtilizador(){
   const u = window.fb && window.fb.user; if(!u) return false;
-  if(names.ownerA === u.uid || names.ownerB === u.uid) return false;
-  const key = !names.ownerA ? 'a' : (!names.ownerB ? 'b' : null);
-  if(!key) return false;
-  names['owner' + key.toUpperCase()] = u.uid;
-  if(!names[key] && u.displayName) names[key] = u.displayName;
-  return true;
+  let changed = false;
+  if(names.ownerA !== u.uid && names.ownerB !== u.uid){
+    const slot = !names.ownerA ? 'a' : (!names.ownerB ? 'b' : null);
+    if(!slot) return false;
+    names['owner' + slot.toUpperCase()] = u.uid;
+    changed = true;
+  }
+  const key = names.ownerA === u.uid ? 'a' : 'b';
+  if(u.displayName && names[key] !== u.displayName){ names[key] = u.displayName; changed = true; }
+  const pk = 'photo' + key.toUpperCase();
+  if(u.photoURL && names[pk] !== u.photoURL){ names[pk] = u.photoURL; changed = true; }
+  return changed;
 }
 async function reclamarPerfil(){
   try{
     if(!garantirPerfilDoUtilizador()) return;
     await persistLocalOnlySilently();
     scheduleCloudPush();
-    renderSettings(); renderProfileSwitcher();
+    renderSettings(); 
   }catch(e){ console.warn('reclamarPerfil:', e); }
-}
-function getProfiles(){
-  const base = [
-    { key:'a', name: names.a || 'Pessoa A', photo: names.photoA },
-    { key:'b', name: names.b || 'Pessoa B', photo: names.photoB },
-  ];
-  const extras = (appSettings.extraProfiles || []);
-  return [...base, ...extras];
 }
 
 function profilePhotoFor(key){
-  if(key === 'a' || key === 'b'){
-    const own = names['photo' + key.toUpperCase()];
-    if(own) return own;
-    if(meuUid() && meuPerfilKey() === key && window.fb.user.photoURL) return window.fb.user.photoURL;
-    return null;
-  }
-  if(key === 'a') return names.photoA || null;
-  if(key === 'b') return names.photoB || null;
-  const ep = (appSettings.extraProfiles || []).find(p => p.key === key);
-  return (ep && ep.photo) || null;
+  if(key !== 'a' && key !== 'b') return null;
+  return names['photo' + key.toUpperCase()] || null;
 }
 
 function personAvatarHtml(key, label){
@@ -4152,31 +4072,8 @@ function renderSettings(){
   renderGlassControls();
   document.getElementById('syncUrl').value = syncUrl || '';
   renderSyncUrlUI();
-  renderProfileSwitcher();
+  
 
-  const bIsUnused = !names.b && !names.photoB && !window._forceShowProfileB;
-  const profiles = getProfiles().filter(p => !(p.key === 'b' && bIsUnused));
-  const colors = ['a','b','c','d'];
-  const colorMap = { a:'var(--vault-light)', b:'var(--terracotta-light)', c:'var(--brass)', d:'#7B68C8' };
-  document.getElementById('profileCardsList').innerHTML = profiles.map((p, i) => {
-    const colorKey = colors[i % colors.length];
-    const bgColor = colorMap[colorKey];
-    const avatarBg = p.photo ? `url(${p.photo})` : '';
-    const avatarText = p.photo ? '' : (p.name.trim().charAt(0) || p.key).toUpperCase();
-    return `
-    <div class="profile-card" id="profileCard-${p.key}">
-      <div class="profile-card-head">
-        <div class="profile-card-avatar" style="background-color:${bgColor}; ${avatarBg ? 'background-image:'+avatarBg+';background-size:contain;background-position:center;background-repeat:no-repeat;' : ''}">
-          ${avatarText}
-        </div>
-        <div class="profile-card-info">
-          <div class="profile-card-name-display">${escapeHtml(p.name) || 'Sem nome'}</div>
-          <span class="profile-card-tag ${colorKey}">${meuPerfilKey() === p.key ? 'Você' : (meuUid() ? 'Parceiro(a)' : 'Perfil ' + p.key.toUpperCase())}</span>
-        </div>
-        ${perfilEhMeu(p.key) ? `<button class="profile-action-btn" onclick="openEditProfileSheet('${p.key}')">✏️ Editar</button>` : ''}
-      </div>
-    </div>`;
-  }).join('');
 
   const toggle = document.getElementById('statsToggle');
   if(toggle) toggle.classList.toggle('on', !!(localSettings && localSettings.showStats));
@@ -4205,35 +4102,6 @@ function renderSettings(){
   if(reqSw) reqSw.classList.toggle('on', !!requireUnlockEachSync);
 }
 
-let profileNameTimer = null;
-function openEditProfileSheet(key){
-  const p = getProfiles().find(x => x.key === key); if(!p) return;
-  if(!perfilEhMeu(key)){ showToast('Só pode editar o seu perfil'); return; }
-  const isBase = (key === 'a' || key === 'b');
-  const avatarBg = p.photo ? `url(${p.photo})` : '';
-  const avatarText = p.photo ? '' : (p.name.trim().charAt(0) || key).toUpperCase();
-  const destructiveBtn = key === 'a'
-    ? ''
-    : key === 'b'
-      ? `<button class="btn btn-ghost" style="color:var(--terracotta);" onclick="confirmClearProfileB()">Remover perfil B</button>`
-      : `<button class="btn btn-ghost" style="color:var(--terracotta);" onclick="confirmDeleteProfile('${key}')">Excluir perfil</button>`;
-  openSheet(`
-    ${sheetHeader(`Editar perfil`)}
-    <div style="display:flex; justify-content:center; margin-bottom:18px;">
-      <label style="cursor:pointer; text-align:center;">
-        <div class="profile-card-avatar" style="width:84px; height:84px; font-size:30px; margin:0 auto; background-color:var(--vault-light); ${avatarBg ? 'background-image:'+avatarBg+';background-size:contain;background-position:center;background-repeat:no-repeat;' : ''}">
-          ${avatarText}
-          <div class="profile-card-avatar-label">foto</div>
-        </div>
-        <input type="file" accept="image/*" style="display:none;" onchange="handleProfilePhotoChange('${key}', this)" />
-      </label>
-    </div>
-    ${p.photo ? `<button class="btn btn-ghost" style="margin-bottom:10px;" onclick="removeProfilePhoto('${key}')">Remover foto</button>` : ''}
-    <div class="field"><label>Nome</label><input type="text" id="editProfileName" value="${escapeHtml(p.name)}" placeholder="Nome" maxlength="30" oninput="updateProfileName('${key}', this.value)" /></div>
-    ${destructiveBtn}
-    <button class="btn btn-ghost" onclick="closeSheet()">Fechar</button>
-  `);
-}
 
 
 function renderSyncLog(){
@@ -4539,7 +4407,23 @@ window.addEventListener('firebase-ready', () => {
 });
 
 
+function renderMembros(){
+  const box = document.getElementById('membrosBox'); if(!box) return;
+  if(!(window.fb && window.fb.user && localSettings.fbHid)){ box.innerHTML = ''; return; }
+  const linha = (k) => {
+    const nome = names[k] || (k === 'a' ? 'Membro 1' : 'Membro 2');
+    const foto = profilePhotoFor(k);
+    const eu = meuPerfilKey() === k;
+    const estado = eu ? 'Você' : (names['owner' + k.toUpperCase()] ? 'Conta do casal' : 'Aguarda entrada');
+    const avatar = foto
+      ? `<div class="income-avatar ${k}" style="background-image:url(${foto});background-size:cover;background-position:center;"></div>`
+      : `<div class="income-avatar ${k}">${escapeHtml(nome.charAt(0).toUpperCase())}</div>`;
+    return `<div class="menu-item" style="cursor:default;">${avatar}<div style="flex:1;min-width:0;"><div class="menu-item-title">${escapeHtml(nome)}</div><div class="menu-item-sub">${estado}</div></div></div>`;
+  };
+  box.innerHTML = `<div class="section-head" style="margin-top:12px;"><div class="section-title">Membros do casal</div></div><div class="menu-list">${linha('a')}${linha('b')}</div>`;
+}
 function renderFbAccount(){
+  renderMembros();
   const box = document.getElementById('fbAccountBox'); if(!box) return;
   if(!window.fb){
     const msg = window.__fbFailed
@@ -4630,181 +4514,23 @@ async function finishCloudSync(decoded, manual){
   } else if(manual){
     showToast('✅ Sincronizado com sucesso');
   }
-  renderAll(); renderMonth(); renderProfileSwitcher();
+  renderAll(); renderMonth(); 
 }
 
-function touchNameField(field){
-  if(!names._ts) names._ts = {};
-  names._ts[field] = Date.now();
-}
-function updateProfileName(key, value){
-  if(key === 'a'){ names.a = value; touchNameField('a'); }
-  else if(key === 'b'){ names.b = value; touchNameField('b'); }
-  else {
-    const extras = appSettings.extraProfiles || [];
-    const ep = extras.find(p => p.key === key);
-    if(ep) ep.name = value;
-  }
-  clearTimeout(profileNameTimer);
-  profileNameTimer = setTimeout(() => {
-    persistNames();
-    persistAppSettings();
-    syncAllAvatars();
-    renderProfileSwitcher();
-    renderAll(); renderMonth();
-    const list = document.getElementById('profileCardsList');
-    if(list) renderSettings();
-  }, 500);
-}
 
-function resizeImageToDataUrl(file, size = 200){
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(new Error('Não foi possível ler o arquivo.'));
-    reader.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error('Arquivo de imagem inválido.'));
-      img.onload = () => {
-        try{
-          const srcSize = Math.min(img.naturalWidth || img.width, img.naturalHeight || img.height);
-          const sx = ((img.naturalWidth  || img.width)  - srcSize) / 2;
-          const sy = ((img.naturalHeight || img.height) - srcSize) / 2;
 
-          const canvas = document.createElement('canvas');
-          canvas.width = size;
-          canvas.height = size;
-          const ctx = canvas.getContext('2d');
-          ctx.imageSmoothingEnabled = true;
-          ctx.imageSmoothingQuality = 'high';
-          ctx.drawImage(img, sx, sy, srcSize, srcSize, 0, 0, size, size);
 
-          let dataUrl = canvas.toDataURL('image/jpeg', 0.82);
 
-          if(dataUrl.length > 350000){
-            dataUrl = canvas.toDataURL('image/jpeg', 0.6);
-          }
-          resolve(dataUrl);
-        }catch(err){ reject(err); }
-      };
-      img.src = reader.result;
-    };
-    reader.readAsDataURL(file);
-  });
-}
 
-async function handleProfilePhotoChange(key, inputEl){
-  if(!perfilEhMeu(key)){ inputEl.value = ''; showToast('Só pode alterar o seu perfil'); return; }
-  const file = inputEl.files && inputEl.files[0];
-  if(!file) return;
-  if(!file.type || !file.type.startsWith('image/')){ showToast('Selecione um arquivo de imagem.'); inputEl.value=''; return; }
-  try{
-    const dataUrl = await resizeImageToDataUrl(file, 200);
-    if(key === 'A' || key === 'a'){ names.photoA = dataUrl; touchNameField('photoA'); }
-    else if(key === 'B' || key === 'b'){ names.photoB = dataUrl; touchNameField('photoB'); }
-    else {
-      const extras = appSettings.extraProfiles || [];
-      const ep = extras.find(p => p.key === key);
-      if(ep) ep.photo = dataUrl;
-      await persistAppSettings();
-    }
-    await persistNames();
-    syncAllAvatars();
-    renderSettings();
-    renderMonth();
-    renderLoans();
-    openEditProfileSheet(key);
-    showToast('Foto atualizada');
-  }catch(e){ console.warn('Falha ao processar foto de perfil:', e); showToast('Não foi possível processar a imagem.'); }
-  finally { inputEl.value = ''; }
-}
-
-async function removeProfilePhoto(key){
-  if(key === 'a' || key === 'A'){ delete names.photoA; touchNameField('photoA'); }
-  else if(key === 'b' || key === 'B'){ delete names.photoB; touchNameField('photoB'); }
-  else {
-    const extras = appSettings.extraProfiles || [];
-    const ep = extras.find(p => p.key === key);
-    if(ep) delete ep.photo;
-    await persistAppSettings();
-  }
-  await persistNames();
-  syncAllAvatars();
-  renderSettings();
-  renderMonth();
-  renderLoans();
-  openEditProfileSheet(key);
-  showToast('Foto removida');
-}
-
-async function addProfile(){
-  if(!names.b && !names.photoB && !window._forceShowProfileB){
-    window._forceShowProfileB = true;
-    renderSettings();
-    setTimeout(() => { const el = document.getElementById('profileCard-b'); if(el) el.scrollIntoView({behavior:'smooth', block:'center'}); }, 50);
-    return;
-  }
-  const usedKeys = getProfiles().map(p => p.key);
-  const letters = 'cdefghijklmnopqrstuvwxyz'.split('');
-  const newKey = letters.find(l => !usedKeys.includes(l)) || uid().slice(0,2);
-  if(!appSettings.extraProfiles) appSettings.extraProfiles = [];
-  appSettings.extraProfiles.push({ key: newKey, name: 'Novo perfil', photo: null });
-  await persistAppSettings();
-  renderSettings();
-  showToast('Perfil adicionado');
-}
-
-function confirmClearProfileB(){
-  const bVaults = vaults.filter(v => v.ownerId === 'b').length;
-  const bBills  = bills.filter(b => b.ownerId === 'b').length;
-  const dataWarning = (bVaults || bBills)
-    ? `Ele tem ${bVaults} cofre(s) e ${bBills} despesa(s) pessoais — eles não serão apagados, só ficam escondidos até você colocar o nome de volta.`
-    : 'Essa ação não pode ser desfeita.';
-  openSheet(`
-    ${sheetHeader('Remover Perfil B?')}
-    <div class="sheet-sub">${dataWarning}</div>
-    <button class="btn btn-primary danger" onclick="clearProfileB()">Remover perfil B</button>
-    <button class="btn btn-ghost" onclick="openEditProfileSheet('b')">Cancelar</button>
-  `);
-}
-async function clearProfileB(){
-  names.b = '';
-  names.photoB = null;
-  touchNameField('b'); touchNameField('photoB');
-  window._forceShowProfileB = false;
-  if(currentScope() === 'b'){ localSettings.currentProfile = 'casa'; await persistLocalSettings(); }
-  await persistNames();
-  closeSheet();
-  renderSettings();
-  renderProfileSwitcher();
-  renderAll(); renderMonth();
-  showToast('Perfil B removido');
-}
-function confirmDeleteProfile(key){
-  const p = getProfiles().find(x => x.key === key);
-  openSheet(`
-    ${sheetHeader('Excluir perfil?')}
-    <div class="sheet-sub">Excluir "${escapeHtml(p ? p.name : 'este perfil')}"? Essa ação não pode ser desfeita.</div>
-    <button class="btn btn-primary danger" onclick="deleteProfile('${key}')">Excluir perfil</button>
-    <button class="btn btn-ghost" onclick="openEditProfileSheet('${key}')">Cancelar</button>
-  `);
-}
-async function deleteProfile(key){
-  appSettings.extraProfiles = (appSettings.extraProfiles || []).filter(p => p.key !== key);
-  await persistAppSettings();
-  closeSheet();
-  renderSettings();
-  showToast('Perfil removido');
-}
 
 function syncAllAvatars(){
-  const profiles = getProfiles();
-  profiles.forEach(p => {
-    const photo = p.photo || (p.key==='a'?names.photoA:p.key==='b'?names.photoB:null);
-    const initial = (p.name.trim().charAt(0) || p.key).toUpperCase();
-    document.querySelectorAll(`.income-avatar.${p.key}, .person-block-avatar.${p.key}`).forEach(av => {
+  ['a','b'].forEach(p => {
+    const photo = profilePhotoFor(p);
+    const initial = ((names[p] || '').trim().charAt(0) || (p === 'a' ? '1' : '2')).toUpperCase();
+    document.querySelectorAll(`.income-avatar.${p}, .person-block-avatar.${p}`).forEach(av => {
       if(photo){
         av.style.backgroundImage = `url(${photo})`;
-        av.style.backgroundSize = 'contain';
+        av.style.backgroundSize = 'cover';
         av.style.backgroundPosition = 'center';
         av.style.backgroundRepeat = 'no-repeat';
         av.textContent = '';
@@ -4982,7 +4708,7 @@ function devExportData(){
 function devOpenEditMonthData(){
   if(!localSettings.devMode){ showToast('Ative o Modo Dev primeiro'); return; }
   const entry = ensureMonthEntry(currentMonthKey);
-  const nameA = names.a || 'Pessoa A'; const nameB = names.b || 'Pessoa B';
+  const nameA = names.a || 'Membro 1'; const nameB = names.b || 'Membro 2';
   openSheet(`
     ${sheetHeader(`🛠️ Dev — Mês ${monthLabelFor(currentMonthKey)}`)}
     <div class="sheet-sub">Edite diretamente a renda e transferências para cofres deste mês.</div>
@@ -5126,22 +4852,22 @@ function renderStats(){
   const box = document.getElementById('statsContent');
   if(!box) return;
   const monthKeys = lastNMonthKeys(6);
-  const scopedVaults = visibleVaults();
+  const scopedVaults = vaults;
   if(scopedVaults.length === 0 && monthKeys.length === 0 && loans.length === 0){
     box.innerHTML = '<div class="stats-empty">Ainda não há dados suficientes para mostrar estatísticas. Use o app por um tempo e volte aqui 📊</div>';
     return;
   }
 
   const totalSaved      = scopedVaults.reduce((s,v) => s + (v.balance||0), 0);
-  const openLoansTotal  = loans.filter(l => l.remaining > 0 && isLoanInScope(l)).reduce((s,l) => s + l.remaining, 0);
-  const totalPaidLoans  = loans.filter(isLoanInScope).reduce((s,l) => s + (l.total - l.remaining), 0);
+  const openLoansTotal  = loans.filter(l => l.remaining > 0).reduce((s,l) => s + l.remaining, 0);
+  const totalPaidLoans  = loans.reduce((s,l) => s + (l.total - l.remaining), 0);
 
   let html = `<div class="stat-cards">
     <div class="stat-card"><div class="stat-card-label">Guardado nos cofres</div><div class="stat-card-value">${fmt(totalSaved)}</div></div>
     <div class="stat-card"><div class="stat-card-label">Empréstimos em aberto</div><div class="stat-card-value">${fmt(openLoansTotal)}</div></div>
   </div>`;
 
-  if(monthKeys.length && currentScope() === 'casa'){
+  if(monthKeys.length){
     const incomeVals = monthKeys.map(k => { const e = ensureMonthEntry(k); return MONEY_SOURCES.reduce((s,src) => s + totalIncomeBySource(e, src.key), 0); });
     const spentVals   = monthKeys.map(k => { const e = ensureMonthEntry(k); return MONEY_SOURCES.reduce((s,src) => s + spentBySource(e, src.key), 0); });
     html += chartBoxWrap('Renda x Gastos', 'Comparativo dos últimos meses', groupedBarSVG(
@@ -5233,7 +4959,7 @@ function openNewVaultSheet(){
   window._pendingVaultEditId = null;
   openSheet(`
     ${sheetHeader(`Novo cofre`)}
-    <div class="sheet-sub">Dê um nome e escolha um símbolo para identificar esse cofre. Este cofre vai ficar em: <b>${scopeLabel(currentScope())}</b>.</div>
+    <div class="sheet-sub">Dê um nome e escolha um símbolo para identificar esse cofre.</div>
     <div class="field"><label>Nome do cofre</label><input type="text" id="newVaultName" placeholder="ex: Eletrodomésticos, Viagem" maxlength="30" /></div>
     <div class="field"><label>Símbolo</label><div class="emoji-grid" id="emojiGrid"></div></div>
     <div class="field"><label>Meta do cofre (opcional)</label><div class="field-money"><input type="number" id="newVaultGoal" placeholder="0,00" inputmode="decimal" /></div></div>
@@ -5289,8 +5015,7 @@ async function createVault(){
   if(!name){ showToast('Dê um nome ao cofre'); return; }
   const goal    = goalRaw    ? parseFloat(goalRaw)    : null;
   const balance = balanceRaw ? parseFloat(balanceRaw) : 0;
-  const ownerId = currentScope() === 'casa' ? null : currentScope();
-  const v = { id: uid(), name, emoji: pendingEmoji, balance, goal, createdAt: Date.now(), ownerId };
+  const v = { id: uid(), name, emoji: pendingEmoji, balance, goal, createdAt: Date.now() };
   if(balance > 0) addVaultSource(v, 'conta', balance);
   vaults.push(v); await persistVaults();
   if(balance > 0){ txns.push({ id: uid(), vaultId: v.id, type:'deposito', amount: balance, note:'Saldo inicial', ts: Date.now() }); await persistTxns(); }
@@ -5355,7 +5080,7 @@ function openTransferSheet(){
   const v = vaults.find(x=>x.id===currentVaultId); if(!v) return;
   const targetOptions = [
     `<option value="conta">Conta principal</option>`,
-    ...visibleVaults().filter(x => x.id !== v.id).map(x => `<option value="${x.id}">Cofre: ${escapeHtml(x.name)}</option>`)
+    ...vaults.filter(x => x.id !== v.id).map(x => `<option value="${x.id}">Cofre: ${escapeHtml(x.name)}</option>`)
   ].join('');
   openSheet(`
     ${sheetHeader(`Enviar valor`)}
@@ -5417,15 +5142,10 @@ async function confirmTransfer(){
 
 function openVaultLoanSheet(){
   const v = vaults.find(x=>x.id===currentVaultId); if(!v) return;
-  const sameScope  = visibleVaults().filter(x => x.id !== v.id);
-  const casaVaults = currentScope() !== 'casa' ? vaults.filter(x => !x.ownerId) : [];
-  const otherVaults = [...sameScope, ...casaVaults];
+  const otherVaults = vaults.filter(x => x.id !== v.id);
   if(otherVaults.length === 0){ showToast('Crie outro cofre para poder emprestar entre cofres.'); return; }
   const nextLabel = monthLabelFor(nextMonthKey(monthKeyFor(new Date())));
-  const optionsHtml = currentScope() === 'casa'
-    ? otherVaults.map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('')
-    : `${sameScope.length ? `<optgroup label="Seus cofres">${sameScope.map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('')}</optgroup>` : ''}
-       ${casaVaults.length ? `<optgroup label="Casa">${casaVaults.map(x=>`<option value="${x.id}">🏠 ${escapeHtml(x.name)}</option>`).join('')}</optgroup>` : ''}`;
+  const optionsHtml = otherVaults.map(x=>`<option value="${x.id}">${escapeHtml(x.name)}</option>`).join('');
   openSheet(`
     ${sheetHeader(`Emprestar a outro cofre`)}
     <div class="sheet-sub">Tire um valor do cofre "${escapeHtml(v.name)}" e empreste a outro cofre. A devolução vira uma despesa automática em ${nextLabel}.</div>
@@ -5458,11 +5178,10 @@ async function confirmVaultLoan(){
   await persistTxns();
 
   const due = nextMonthKey(monthKeyFor(new Date()));
-  const billOwnerId = (v.ownerId && v.ownerId === dest.ownerId) ? v.ownerId : null;
   bills.push({
     id: uid(), name: `Devolver empréstimo — ${escapeHtml(dest.name)} → ${escapeHtml(v.name)}`,
     defaultAmount: amount, kind: 'variavel', createdMonthKey: currentMonthKey, dueMonthKey: due,
-    payFromVaultId: dest.id, payToVaultId: v.id, ownerId: billOwnerId
+    payFromVaultId: dest.id, payToVaultId: v.id
   });
   await persistBills();
 
@@ -5472,12 +5191,9 @@ async function confirmVaultLoan(){
 
 function openLoanSheet(){
   const v     = vaults.find(x=>x.id===currentVaultId);
-  const nameA = names.a || 'Pessoa A';
-  const nameB = names.b || 'Pessoa B';
-  const scope = currentScope();
-  const whoField = scope === 'casa'
-    ? `<select id="loanWho"><option value="">Selecione</option><option value="a">${nameA}</option><option value="b">${nameB}</option></select>`
-    : `<input type="hidden" id="loanWho" value="${scope}" /><div class="section-sub" style="padding:10px 2px;">${scope==='a'?nameA:nameB} (perfil atual)</div>`;
+  const nameA = names.a || 'Membro 1';
+  const nameB = names.b || 'Membro 2';
+  const whoField = `<select id="loanWho"><option value="">Selecione</option><option value="a">${nameA}</option><option value="b">${nameB}</option></select>`;
   openSheet(`
     ${sheetHeader(`Pegar emprestado`)}
     <div class="sheet-sub">Tire um valor do cofre "${escapeHtml(v.name)}" combinando em quantas vezes vai devolver.</div>
@@ -5544,15 +5260,12 @@ function openPayInstallment(loanId){
   const payAmount  = Math.min(loan.total / loan.installments, loan.remaining);
   const sourceVault = vaults.find(v=>v.id===loan.vaultId);
   const autoReturn  = sourceVault && sourceVault.goal && sourceVault.balance < sourceVault.goal;
-  const nameA = names.a || 'Pessoa A'; const nameB = names.b || 'Pessoa B';
-  const scope = currentScope();
-  const payWhoField = scope === 'casa'
-    ? `<select id="paymentWho"><option value="">Selecione</option><option value="a">${nameA}</option><option value="b">${nameB}</option></select>`
-    : `<input type="hidden" id="paymentWho" value="${scope}" /><div class="section-sub" style="padding:10px 2px;">${scope==='a'?nameA:nameB} (perfil atual)</div>`;
+  const nameA = names.a || 'Membro 1'; const nameB = names.b || 'Membro 2';
+  const payWhoField = `<select id="paymentWho"><option value="">Selecione</option><option value="a">${nameA}</option><option value="b">${nameB}</option></select>`;
   const destinationOptions = autoReturn ? '' : `
     <option value="${loan.vaultId}">Voltar para ${sourceVault ? escapeHtml(sourceVault.name) : 'este cofre'}</option>
     <option value="conta">Conta principal</option>
-    ${visibleVaults().filter(v=>v.id!==loan.vaultId).map(v=>`<option value="${v.id}">Outro cofre: ${escapeHtml(v.name)}</option>`).join('')}`;
+    ${vaults.filter(v=>v.id!==loan.vaultId).map(v=>`<option value="${v.id}">Outro cofre: ${escapeHtml(v.name)}</option>`).join('')}`;
   const helpText = autoReturn
     ? '<div class="field"><div class="section-sub">A meta deste cofre ainda não foi batida. O valor será devolvido a ele automaticamente.</div></div>' : '';
   openSheet(`
@@ -5567,7 +5280,7 @@ function openPayInstallment(loanId){
   `);
 }
 function openMultiPaySheet(who){
-  const openLoans = loans.filter(l => l.remaining > 0 && (!who || l.who === who) && isLoanInScope(l));
+  const openLoans = loans.filter(l => l.remaining > 0 && (!who || l.who === who));
   if(openLoans.length === 0){ showToast('Nenhum empréstimo em aberto.'); return; }
   const loanItems = openLoans.map(l => {
     const loanTitle = escapeHtml(l.note || 'Empréstimo');
@@ -5691,17 +5404,14 @@ function openAdvancePaymentSheet(loanId){
   const loan = loans.find(l=>l.id===loanId); if(!loan) return;
   const sourceVault = vaults.find(v=>v.id===loan.vaultId);
   const autoReturn  = sourceVault && sourceVault.goal && sourceVault.balance < sourceVault.goal;
-  const nameA = names.a || 'Pessoa A'; const nameB = names.b || 'Pessoa B';
+  const nameA = names.a || 'Membro 1'; const nameB = names.b || 'Membro 2';
   const destinationOptions = autoReturn ? '' : `
     <option value="${loan.vaultId}">Voltar para ${sourceVault ? escapeHtml(sourceVault.name) : 'este cofre'}</option>
     <option value="conta">Conta principal</option>
-    ${visibleVaults().filter(v=>v.id!==loan.vaultId).map(v=>`<option value="${v.id}">Outro cofre: ${escapeHtml(v.name)}</option>`).join('')}`;
+    ${vaults.filter(v=>v.id!==loan.vaultId).map(v=>`<option value="${v.id}">Outro cofre: ${escapeHtml(v.name)}</option>`).join('')}`;
   const helpText = autoReturn
     ? '<div class="field"><div class="section-sub">A meta deste cofre ainda não foi batida. O valor será devolvido a ele automaticamente.</div></div>' : '';
-  const scope = currentScope();
-  const whoField = scope === 'casa'
-    ? `<select id="advanceWho"><option value="">Selecione</option><option value="a">${nameA}</option><option value="b">${nameB}</option></select>`
-    : `<input type="hidden" id="advanceWho" value="${scope}" /><div class="section-sub" style="padding:10px 2px;">${scope==='a'?nameA:nameB} (perfil atual)</div>`;
+  const whoField = `<select id="advanceWho"><option value="">Selecione</option><option value="a">${nameA}</option><option value="b">${nameB}</option></select>`;
   openSheet(`
     ${sheetHeader(`Adiantar pagamento`)}
     <div class="sheet-sub">Empréstimo "${escapeHtml(loan.note || 'sem nota')}" — restam <b>${fmt(loan.remaining)}</b>. Pague qualquer valor à frente das parcelas normais.</div>
@@ -5846,22 +5556,8 @@ function renderMonth(){
   document.getElementById('monthLabel').textContent = monthLabelFor(currentMonthKey);
   updateMonthHint();
   const entry = ensureMonthEntry(currentMonthKey);
-  const scope = currentScope();
-
-  if(scope !== 'casa'){
-    document.getElementById('mainMonthContent').style.display = 'block';
-    document.getElementById('incomeSection').innerHTML = `
-      <div class="section-sub" style="padding:6px 2px 14px; line-height:1.5;">
-        A renda do casal fica só no espaço Casa. Para mandar dinheiro pra cá, crie em Casa uma despesa do tipo "Enviar para pessoa".
-      </div>`;
-    document.getElementById('sourceBalances').innerHTML = '';
-    renderBills(entry);
-    renderPersonalMonthSummary(entry);
-    return;
-  }
-
-  const nameA    = names.a || 'Pessoa A';
-  const nameB    = names.b || 'Pessoa B';
+  const nameA    = names.a || 'Membro 1';
+  const nameB    = names.b || 'Membro 2';
   let totalIncome = 0, incomeHtml = '';
 
   ['a','b'].forEach(p => {
@@ -5902,11 +5598,8 @@ function renderMonth(){
 }
 
 function openAddIncomeSheet(){
-  const nameA = names.a || 'Pessoa A'; const nameB = names.b || 'Pessoa B';
-  const scope = currentScope();
-  const whoField = scope === 'casa'
-    ? `<select id="incWho"><option value="a">${nameA}</option><option value="b">${nameB}</option></select>`
-    : `<input type="hidden" id="incWho" value="${scope}" /><div class="section-sub" style="padding:10px 2px;">${scope==='a'?nameA:nameB} (perfil atual)</div>`;
+  const nameA = names.a || 'Membro 1'; const nameB = names.b || 'Membro 2';
+  const whoField = `<select id="incWho"><option value="a">${nameA}</option><option value="b">${nameB}</option></select>`;
   openSheet(`
     ${sheetHeader(`Adicionar Renda`)}
     <div class="sheet-sub">De quem é este dinheiro e onde ele está (físico ou em conta)?</div>
@@ -5996,7 +5689,7 @@ async function removeFairExpense(index){
 }
 
 function renderLoans(){
-  const openLoans = loans.filter(l => l.remaining > 0 && isLoanInScope(l));
+  const openLoans = loans.filter(l => l.remaining > 0);
   const box = document.getElementById('loansList');
 
   if(openLoans.length === 0){
@@ -6057,17 +5750,7 @@ function renderLoans(){
     }).join('');
   }
 
-  const scopedVaultIds = new Set(visibleVaults().map(v=>v.id));
-  const scope = currentScope();
-  const history = [...txns].filter(t => {
-    if(t.type !== 'emprestimo' && t.type !== 'pagamento') return false;
-    if(scopedVaultIds.has(t.vaultId)) return true;
-    if(scope !== 'casa'){
-      const loan = loans.find(l => l.id === t.loanId);
-      if(loan && loan.who === scope) return true;
-    }
-    return false;
-  }).sort((a,b)=>b.ts-a.ts);
+  const history = [...txns].filter(t => t.type === 'emprestimo' || t.type === 'pagamento').sort((a,b)=>b.ts-a.ts);
   document.getElementById('loanHistory').innerHTML = history.length === 0
     ? '<div class="empty-note">Nenhum movimento de empréstimo ainda.</div>'
     : history.map(t => activityRowHtml(t)).join('');
@@ -6467,16 +6150,13 @@ async function deleteBill(billId){
 function openNewBillSheet(){
   openSheet(`
     ${sheetHeader(`Nova conta / despesa`)}
-    <div class="sheet-sub">Cadastre uma despesa fixa ou variável. Esta despesa vai ficar em: <b>${scopeLabel(currentScope())}</b>.</div>
+    <div class="sheet-sub">Cadastre uma despesa fixa ou variável.</div>
     <div class="field"><label>Nome da despesa</label><input type="text" id="newBillName" placeholder="ex: Aluguel, Feira, Transferência" maxlength="30" /></div>
     <div class="field">
       <label>Destino do dinheiro (opcional)</label>
       <select id="billTargetVault">
         <option value="">Nenhum (Despesa comum externa)</option>
-        ${visibleVaults().map(v => `<option value="${v.id}">Cofre: ${escapeHtml(v.name)}</option>`).join('')}
-        ${currentScope()==='casa' ? `
-        <option value="person:a">👤 Enviar para ${escapeHtml(names.a||'Pessoa A')} (pessoal)</option>
-        <option value="person:b">👤 Enviar para ${escapeHtml(names.b||'Pessoa B')} (pessoal)</option>` : ''}
+        ${vaults.map(v => `<option value="${v.id}">Cofre: ${escapeHtml(v.name)}</option>`).join('')}
       </select>
     </div>
     <div class="field">
@@ -6515,14 +6195,6 @@ function pickBillDuration(d){
   const wrap = document.getElementById('billDurationCountWrap');
   if(wrap) wrap.style.display = (d === 'n') ? 'block' : 'none';
 }
-async function getOrCreatePersonalVault(person){
-  let v = vaults.find(x => x.ownerId === person && x.isPersonalDefault);
-  if(v) return v;
-  const label = names[person] || (person === 'a' ? 'Pessoa A' : 'Pessoa B');
-  v = { id: uid(), name: `Carteira Pessoal — ${label}`, emoji: '💰', balance: 0, goal: null, createdAt: Date.now(), ownerId: person, isPersonalDefault: true };
-  vaults.push(v); await persistVaults();
-  return v;
-}
 async function createBill(){
   const name        = document.getElementById('newBillName').value.trim();
   const amount      = parseFloat(document.getElementById('newBillAmount').value) || 0;
@@ -6530,12 +6202,7 @@ async function createBill(){
   const kind        = window._pendingBillKind || 'fixa';
   const duration    = window._pendingBillDuration || 'all';
   if(!name){ showToast('Dê um nome à conta'); return; }
-  let targetVaultId = targetValue;
-  if(targetValue && targetValue.startsWith('person:')){
-    const person = targetValue.split(':')[1];
-    const personalVault = await getOrCreatePersonalVault(person);
-    targetVaultId = personalVault.id;
-  }
+  const targetVaultId = targetValue;
   let endMonthKey = null;
   if(duration === 'once'){
     endMonthKey = currentMonthKey;
@@ -6544,8 +6211,7 @@ async function createBill(){
     if(!n || n < 1){ showToast('Diga por quantos meses'); return; }
     endMonthKey = addMonthsToKey(currentMonthKey, n - 1);
   }
-  const ownerId = currentScope() === 'casa' ? null : currentScope();
-  bills.push({ id: uid(), name, defaultAmount: amount, kind, targetVaultId, createdMonthKey: currentMonthKey, ownerId, endMonthKey });
+  bills.push({ id: uid(), name, defaultAmount: amount, kind, targetVaultId, createdMonthKey: currentMonthKey, endMonthKey });
   await persistBills(); closeSheet(); showToast('Adicionado com sucesso'); renderMonth();
 }
 
@@ -6560,8 +6226,7 @@ function openEditBillSheet(billId){
   window._pendingBillEditId = billId;
   window._pendingBillKind = b.kind || 'fixa';
   const isVaultLoanBill = !!b.payFromVaultId;
-  const isPersonalBill  = !!b.ownerId;
-  const targetField = (isVaultLoanBill || isPersonalBill) ? '' : `
+  const targetField = (isVaultLoanBill) ? '' : `
     <div class="field">
       <label>Destino do dinheiro (opcional)</label>
       <select id="editBillTargetVault">
@@ -6571,7 +6236,7 @@ function openEditBillSheet(billId){
     </div>`;
   const noteText = isVaultLoanBill
     ? '<div class="section-sub" style="margin:-4px 2px 14px;">Esta é a devolução de um empréstimo entre cofres — o pagamento sempre volta para o cofre de origem, não dá pra escolher outro destino aqui.</div>'
-    : (isPersonalBill ? '<div class="section-sub" style="margin:-4px 2px 14px;">Despesa pessoal — ao pagar, você escolhe de qual dos seus cofres vai sair o dinheiro.</div>' : '');
+    : '';
 
   const createdKey = b.createdMonthKey || currentMonthKey;
   let curDuration = 'all', curCount = 3;
@@ -6646,18 +6311,6 @@ function openPayBillSheet(billId){
   const entry  = ensureMonthEntry(currentMonthKey);
   const amount = billAmount(entry, b);
 
-  if(currentScope() !== 'casa'){
-    const myVaults = visibleVaults();
-    if(myVaults.length === 0){ showToast('Crie um cofre pessoal primeiro para poder pagar despesas.'); return; }
-    openSheet(`
-      ${sheetHeader(`Pagar ${escapeHtml(b.name)}`)}
-      <div class="sheet-sub">Valor: <b>${fmt(amount)}</b>. De qual dos seus cofres vai sair esse dinheiro?</div>
-      <div class="field"><label>Cofre</label><select id="payFromVault">${myVaults.map(v=>`<option value="${v.id}">${v.emoji||'🏦'} ${escapeHtml(v.name)} (${fmt(v.balance)})</option>`).join('')}</select></div>
-      <button class="btn btn-primary" onclick="confirmPayPersonalBill('${billId}')">Confirmar pagamento</button>
-      <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>
-    `);
-    return;
-  }
 
   const sources   = ['conta','vale','fisico'];
   const available = sources.map(src => ({ key: src, balance: Math.max(0, remainingBySource(entry, src)) }));
@@ -6718,23 +6371,6 @@ async function confirmPayBill(billId, amount){
   }
   await persistMonthData(); closeSheet(); showToast('Conta paga'); renderMonth();
 }
-async function confirmPayPersonalBill(billId){
-  const entry  = ensureMonthEntry(currentMonthKey);
-  const b      = bills.find(x=>x.id===billId); if(!b) return;
-  const amount = billAmount(entry, b);
-  const vaultId = document.getElementById('payFromVault').value;
-  const v = vaults.find(x=>x.id===vaultId); if(!v) return;
-  if(amount > v.balance){ if(!confirm(`"${v.name}" vai ficar negativo com essa despesa. Continuar?`)) return; }
-
-  v.balance = round2(v.balance - amount);
-  removeVaultSourceProportional(v, amount);
-  await persistVaults();
-  txns.push({ id: uid(), vaultId: v.id, type:'retirada', amount, note:`Despesa: ${b.name}`, billId: b.id, ts: Date.now() });
-  await persistTxns();
-
-  entry.billsPaid[billId] = { personalVaultId: v.id };
-  await persistMonthData(); closeSheet(); showToast('Conta paga'); renderMonth(); renderAll();
-}
 function openPayVaultBillSheet(billId){
   const entry = ensureMonthEntry(currentMonthKey);
   const b     = bills.find(x=>x.id===billId); if(!b) return;
@@ -6789,17 +6425,6 @@ function importPreviousMonthBills(){
   showToast('Despesas do mês anterior importadas.');
 }
 
-function renderPersonalMonthSummary(entry){
-  const visibleBills = bills.filter(b => !entry.hiddenBills[b.id] && isBillDueThisMonth(b));
-  const totalBills    = visibleBills.reduce((s,b)=> s + billAmount(entry, b), 0);
-  const myVaultsTotal = visibleVaults().reduce((s,v)=> s + Math.max(v.balance,0), 0);
-  document.getElementById('monthSummary').innerHTML = `
-    <div class="ms-row"><div class="ms-label">Despesas deste mês</div><div class="ms-value">− ${fmt(totalBills)}</div></div>
-    <div class="ms-row ms-final positive">
-      <div class="ms-label ms-final-label">👛 Guardado nos seus cofres</div>
-      <div class="ms-value">${fmt(myVaultsTotal)}</div>
-    </div>`;
-}
 function renderMonthSummary(entry, totalIncome){
   const visibleBills = bills.filter(b => !entry.hiddenBills[b.id] && isBillDueThisMonth(b));
   const totalBills   = visibleBills.reduce((s,b)=> s + billAmount(entry, b), 0);
@@ -6841,19 +6466,19 @@ function renderForecast(){
   const visibleBills  = bills.filter(b => (!b.createdMonthKey || b.createdMonthKey <= currentMonthKey) && isBillDueThisMonth(b));
   const totalBillsAmt = visibleBills.reduce((s,b) => s + billAmount(currentEntry, b), 0);
 
-  const openLoans = loans.filter(l => l.remaining > 0 && isLoanInScope(l));
+  const openLoans = loans.filter(l => l.remaining > 0);
   const totalLoanInstall = openLoans.reduce((s,l) => {
     const remaining = l.installments - l.paidInstallments;
     if(remaining <= 0) return s;
     return s + (l.remaining / remaining);
   }, 0);
 
-  const scopedVaults = visibleVaults();
+  const scopedVaults = vaults;
   const defaultVaultAlloc = {};
   scopedVaults.forEach(v => { defaultVaultAlloc[v.id] = p.vaultAllocations?.[v.id] ?? 0; });
 
-  const nameA = names.a || 'Pessoa A';
-  const nameB = names.b || 'Pessoa B';
+  const nameA = names.a || 'Membro 1';
+  const nameB = names.b || 'Membro 2';
   const months = p.months || 6;
 
   const vaultAllocRows = scopedVaults.filter(v => !isTemporaryVault(v)).map(v => `
@@ -7079,7 +6704,7 @@ function buildForecastResult(){
   const visibleBills  = bills.filter(b => (!b.createdMonthKey || b.createdMonthKey <= currentMonthKey) && isBillDueThisMonth(b));
   const totalBillsAmt = visibleBills.reduce((s,b) => s + billAmount(currentEntry, b), 0);
 
-  const openLoans = loans.filter(l => l.remaining > 0 && isLoanInScope(l));
+  const openLoans = loans.filter(l => l.remaining > 0);
   const loanSchedule = openLoans.map(l => {
     const remain = l.installments - l.paidInstallments;
     return { ...l, remainMonths: remain, installAmt: remain > 0 ? l.remaining / remain : 0 };
