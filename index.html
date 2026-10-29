@@ -3082,15 +3082,23 @@ window.addEventListener('pagehide', () => {
   }catch(e){}
 });
 
+// Estado da sincronização: reflete a ligação à conta Google e ao casal (não a URL do Apps Script).
 function setSyncStatus(state){
   let label, dotClass;
-  if(state === 'saving' || state === 'syncing'){
+  const u = window.fb && window.fb.user;
+  if(!window.__fbReady){
+    label = 'a ligar ao Google'; dotClass = 'sync-dot off';
+  } else if(!u){
+    label = 'sem conta Google'; dotClass = 'sync-dot off';
+  } else if(!localSettings.fbHid){
+    label = 'sem casal ligado'; dotClass = 'sync-dot off';
+  } else if(state === 'saving' || state === 'syncing'){
     label = state === 'syncing' ? 'sincronizando…' : 'salvando…';
     dotClass = 'sync-dot spinning';
   } else if(state === 'synced'){
-    label = 'sincronizado'; dotClass = 'sync-dot';
-  } else { // 'nolink' or any error/offline state
-    label = 'offline / sem link'; dotClass = 'sync-dot off';
+    label = 'sincronizado com Google'; dotClass = 'sync-dot';
+  } else {
+    label = 'sem ligação ao Google'; dotClass = 'sync-dot off';
   }
   SYNC_PILL_SCREENS.forEach(screen => {
     const dot = document.getElementById('syncDot-' + screen);
