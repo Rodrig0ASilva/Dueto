@@ -2385,7 +2385,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.13.1';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.14.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 const SPLASH_MIN_MS = 1200;
 const splashInicio = Date.now();
@@ -2902,6 +2902,12 @@ async function loadAll(manual = false){
   setSplash('A carregar…');
 
   await loadLocalOnlySettings();
+  if(window.fb && window.fb.user && !localSettings.fbHid){
+    try{
+      const c = await window.fb.getUserHousehold(window.fb.user.uid);
+      if(c && c.hid){ localSettings.fbHid = c.hid; localSettings.fbCode = c.code || null; await persistLocalSettings(); }
+    }catch(e){ logSyncEvent('error', 'Ler casal da conta: ' + (e.code || e.message || e), ''); }
+  }
   await loadSyncState();
 
   applyAllAppearance();
@@ -4511,6 +4517,7 @@ async function fbCreateConfirmed(){
     const r = await window.fb.createHousehold(payload);
     localSettings.fbHid = r.hid; localSettings.fbCode = r.code;
     await persistLocalSettings();
+    try{ await window.fb.setUserHousehold(window.fb.user.uid, r.hid, r.code); }catch(e){ logSyncEvent('error', 'Guardar casal na conta: ' + (e.code || e.message || e), ''); }
     fbStartListening(); closeSheet(); renderFbAccount();
     showToast('Casal criado. Código: ' + r.code);
   }catch(e){ console.error('Criar casal:', e); showToast('Erro ao criar casal: ' + (e.code || e.message || e)); }
@@ -4530,6 +4537,7 @@ async function fbJoinConfirmed(){
     const st = await window.fb.getState(hid);
     if(st && st.data) applyCloudData(st.data);
     localSettings.fbHid = hid; localSettings.fbCode = code.toUpperCase();
+    try{ await window.fb.setUserHousehold(window.fb.user.uid, hid, localSettings.fbCode); }catch(e){ logSyncEvent('error', 'Guardar casal na conta: ' + (e.code || e.message || e), ''); }
     await persistLocalSettings(); await persistLocalOnlySilently();
     garantirPerfilDoUtilizador(); await persistLocalOnlySilently();
     fbStartListening(); scheduleCloudPush(); closeSheet(); renderAll(); renderMonth(); renderFbAccount();
@@ -4546,6 +4554,7 @@ async function fbLeave(){
   localSettings.fbHid = null; localSettings.fbCode = null;
   await persistLocalSettings(); renderFbAccount();
   showToast('Casal desconectado deste aparelho');
+  try{ if(window.fb && window.fb.user) await window.fb.setUserHousehold(window.fb.user.uid, null, null); }catch(e){}
 }
 
 async function finishCloudSync(decoded, manual){
@@ -7113,6 +7122,14 @@ window.fb = {
     }, err => {
       window.dispatchEvent(new CustomEvent('fb-sync-error', { detail: { code: err.code, message: err.message } }));
     });
+  },
+  // Casal guardado na própria conta Google, para funcionar em qualquer navegador.
+  async getUserHousehold(uid){
+    const s = await getDoc(doc(db,'users',uid));
+    return s.exists() ? s.data() : null;
+  },
+  async setUserHousehold(uid, hid, code){
+    await setDoc(doc(db,'users',uid), { hid: hid || null, code: code || null }, { merge: true });
   },
   // Substitui o conteúdo do casal por completo (sem fusão). updateDoc troca o campo inteiro.
   async overwriteState(hid, payload){
