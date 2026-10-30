@@ -23,6 +23,7 @@
     var st = document.documentElement.style;
     st.setProperty('--splash-bg', bg);
     st.setProperty('--splash-fg', fg);
+    document.documentElement.style.background = bg;
     st.setProperty('--icon-tile', V2[ik] || V2.green);
     st.setProperty('--icon-accent', BL[ik] || BL.green);
   }catch(e){}
@@ -1849,7 +1850,7 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-r
 </div>
 
 <div id="loginGate" style="position:fixed;inset:0;background:var(--cream);display:none;flex-direction:column;align-items:center;justify-content:center;z-index:998;padding:24px;text-align:center;">
-  <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="width:72px;height:72px;margin-bottom:18px;"><rect width="64" height="64" rx="14" fill="#2C4F3D"/><g transform="translate(8,18)"><path d="M6 16 L10 6 Q12 3 16 3 L32 3 Q36 3 38 6 L42 16" fill="none" stroke="#D9A949" stroke-width="3" stroke-linecap="round"/><rect x="2" y="15" width="44" height="14" rx="5" fill="#D9A949"/><circle cx="12" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/><circle cx="36" cy="31" r="6" fill="#1F3A2E" stroke="#D9A949" stroke-width="2.5"/></g></svg>
+  <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" style="width:72px;height:72px;margin-bottom:18px;"><rect width="64" height="64" rx="14" fill="#2C4F3D"/><circle cx="22" cy="32" r="11" fill="none" stroke="#D9A949" stroke-width="3.5"/><circle cx="42" cy="32" r="11" fill="none" stroke="#F6EFE2" stroke-width="3.5" opacity=".85"/></svg>
   <div style="font-family:'Fraunces',serif;font-weight:600;font-size:26px;color:var(--vault);">Dueto</div>
   <div class="section-sub" style="margin:8px 0 28px;max-width:300px;">Entre com sua conta Google para sincronizar o casal entre os dois celulares.</div>
   <button class="btn btn-primary" style="max-width:300px;" onclick="fbSignIn()">Continuar com Google</button>
@@ -2348,6 +2349,11 @@ html { background: #F6EFE2; }
 <div class="toast" id="toast"></div>
 
 <script>
+// Erros da escuta da nuvem (ex.: permissões das regras) ficam visíveis no estado e no log.
+window.addEventListener('fb-sync-error', e => {
+  setSyncStatus('nolink');
+  logSyncEvent('error', 'Escuta da nuvem: ' + (e.detail.code || e.detail.message || 'erro'), '');
+});
 // Espaço próprio do Dueto no armazenamento local. Só copia (nunca apaga) dados que são do Dueto
 // e que estavam sem prefixo, porque o Corrida+ usa alguns destes mesmos nomes no mesmo domínio.
 function migrarNamespaceLocal(){
@@ -2379,7 +2385,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.10.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.11.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 const SPLASH_MIN_MS = 1200;
 const splashInicio = Date.now();
@@ -2423,7 +2429,7 @@ async function hideSplash(){
   document.getElementById('splashIcon')?.classList.remove('icon-gray');
   await esperar(900);
   const s = document.getElementById('splashScreen');
-  if(s){ s.classList.add('hide'); setTimeout(() => s.remove(), 400); }
+  if(s){ s.classList.add('hide'); setTimeout(() => { s.remove(); document.documentElement.style.background = document.body.classList.contains('dark') ? '#16161B' : '#F6EFE2'; }, 400); }
 }
 
 // Lê e limpa a marca de atualização automática. True se a versão atual é a que foi pedida.
@@ -4528,7 +4534,7 @@ async function fbJoinConfirmed(){
     garantirPerfilDoUtilizador(); await persistLocalOnlySilently();
     fbStartListening(); scheduleCloudPush(); closeSheet(); renderAll(); renderMonth(); renderFbAccount();
     showToast('Casal conectado!');
-  }catch(e){ showToast('Não foi possível entrar: ' + (e.message || e)); }
+  }catch(e){ console.error('Entrar no casal:', e); logSyncEvent('error', 'Entrar no casal: ' + (e.code || e.message || e), ''); showToast('Não foi possível entrar: ' + (e.code || e.message || e)); }
 }
 async function fbSignOut(){
   try{ await window.fb.signOut(); }catch(e){}
@@ -7104,6 +7110,8 @@ window.fb = {
       if(!snap.exists()) return;
       const d = snap.data();
       cb(d.data, { by: d.by, updatedAt: d.updatedAt, pending: snap.metadata.hasPendingWrites });
+    }, err => {
+      window.dispatchEvent(new CustomEvent('fb-sync-error', { detail: { code: err.code, message: err.message } }));
     });
   },
   // Substitui o conteúdo do casal por completo (sem fusão). updateDoc troca o campo inteiro.
