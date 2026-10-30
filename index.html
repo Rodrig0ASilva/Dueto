@@ -2385,7 +2385,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.14.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.13.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 const SPLASH_MIN_MS = 1200;
 const splashInicio = Date.now();
@@ -2907,6 +2907,11 @@ async function loadAll(manual = false){
       const c = await window.fb.getUserHousehold(window.fb.user.uid);
       if(c && c.hid){ localSettings.fbHid = c.hid; localSettings.fbCode = c.code || null; await persistLocalSettings(); }
     }catch(e){ logSyncEvent('error', 'Ler casal da conta: ' + (e.code || e.message || e), ''); }
+  }
+  // Aparelho já ligado ao casal: garante que a conta guarda o código (útil para outros navegadores).
+  if(window.fb && window.fb.user && localSettings.fbHid){
+    try{ await window.fb.setUserHousehold(window.fb.user.uid, localSettings.fbHid, localSettings.fbCode || null); }
+    catch(e){ logSyncEvent('error', 'Guardar casal na conta: ' + (e.code || e.message || e), ''); }
   }
   await loadSyncState();
 
