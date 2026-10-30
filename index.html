@@ -2385,7 +2385,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.13.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.14.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 const SPLASH_MIN_MS = 400;
 const splashInicio = Date.now();
@@ -2904,8 +2904,13 @@ async function loadAll(manual = false){
     applyTabVisibility();
     const ls0 = document.getElementById('loadingState'); if(ls0) ls0.style.display = 'none';
     renderAll(); renderMonth();
+    // Verifica a atualização antes de mostrar a app (no máximo 1,2 s). Se houver versão nova, recarrega
+    // antes de o utilizador ver o conteúdo, evitando o recarregamento depois de a app já estar visível.
+    setSplash('A verificar atualização…');
+    const atualiza = checkForUpdateOnBoot();
+    if(await Promise.race([atualiza, esperar(1200)]) === true) return;
+    setSplash('A carregar…');
     hideSplash();
-    checkForUpdateOnBoot();   // recarrega sozinho só se houver versão nova
     await esperarFirebase();
   }
   setSplash('A sincronizar…');
