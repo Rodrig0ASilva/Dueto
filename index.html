@@ -1867,7 +1867,7 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-r
         </div>
         <div class="screen-title">Cofres</div>
       </div>
-      <div class="sync-pill" id="syncPill-home" onclick="loadAll(true)" title="Toque para sincronizar agora">
+      <div class="sync-pill" id="syncPill-home" onclick="manualSync()" title="Toque para sincronizar agora">
         <span class="sync-dot" id="syncDot-home"></span>
         <span id="syncStatus-home">sincronizando</span>
       </div>
@@ -1948,7 +1948,7 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-r
         </div>
         <div class="screen-title">Mês</div>
       </div>
-      <div class="sync-pill" id="syncPill-month" onclick="loadAll(true)" title="Toque para sincronizar agora">
+      <div class="sync-pill" id="syncPill-month" onclick="manualSync()" title="Toque para sincronizar agora">
         <span class="sync-dot" id="syncDot-month"></span>
         <span id="syncStatus-month">sincronizando</span>
       </div>
@@ -2003,7 +2003,7 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-r
         </div>
         <div class="screen-title">Feira</div>
       </div>
-      <div class="sync-pill" id="syncPill-feira" onclick="loadAll(true)" title="Toque para sincronizar agora">
+      <div class="sync-pill" id="syncPill-feira" onclick="manualSync()" title="Toque para sincronizar agora">
         <span class="sync-dot" id="syncDot-feira"></span>
         <span id="syncStatus-feira">sincronizando</span>
       </div>
@@ -2035,7 +2035,7 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-r
         </div>
         <div class="screen-title">Empréstimos</div>
       </div>
-      <div class="sync-pill" id="syncPill-loans" onclick="loadAll(true)" title="Toque para sincronizar agora">
+      <div class="sync-pill" id="syncPill-loans" onclick="manualSync()" title="Toque para sincronizar agora">
         <span class="sync-dot" id="syncDot-loans"></span>
         <span id="syncStatus-loans">sincronizando</span>
       </div>
@@ -2111,7 +2111,7 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-r
         <div class="screen-title">Você</div>
       </div>
       <div style="display:flex;flex-direction:column;align-items:flex-end;position:relative;">
-        <div class="sync-pill" id="syncPill-settings" onclick="loadAll(true)" title="Toque para sincronizar agora">
+        <div class="sync-pill" id="syncPill-settings" onclick="manualSync()" title="Toque para sincronizar agora">
           <span class="sync-dot" id="syncDot-settings"></span>
           <span id="syncStatus-settings">sincronizando</span>
         </div>
@@ -2256,7 +2256,7 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-r
         </div>
         <div class="screen-title">Estatísticas</div>
       </div>
-      <div class="sync-pill" id="syncPill-stats" onclick="loadAll(true)" title="Toque para sincronizar agora">
+      <div class="sync-pill" id="syncPill-stats" onclick="manualSync()" title="Toque para sincronizar agora">
         <span class="sync-dot" id="syncDot-stats"></span>
         <span id="syncStatus-stats">sincronizando</span>
       </div>
@@ -2387,7 +2387,7 @@ if (!window.storage) {
 
 const APP_VERSION = '4.13.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
-const SPLASH_MIN_MS = 1200;
+const SPLASH_MIN_MS = 400;
 const splashInicio = Date.now();
 let splashFechada = false;
 window.__splashTok = 0;
@@ -2427,7 +2427,7 @@ async function hideSplash(){
   splashFechada = true;
   await esperar(Math.max(0, SPLASH_MIN_MS - (Date.now() - splashInicio)));
   document.getElementById('splashIcon')?.classList.remove('icon-gray');
-  await esperar(900);
+  await esperar(350);
   const s = document.getElementById('splashScreen');
   if(s){ s.classList.add('hide'); setTimeout(() => { s.remove(); document.documentElement.style.background = document.body.classList.contains('dark') ? '#16161B' : '#F6EFE2'; }, 400); }
 }
@@ -2446,7 +2446,7 @@ function esperarFirebase(){
   return new Promise(res => {
     if(window.__fbReady) return res();
     window.addEventListener('firebase-ready', () => res(), { once: true });
-    setTimeout(res, 3000);
+    setTimeout(res, 5000);
   });
 }
 
@@ -2895,11 +2895,20 @@ async function loadAll(manual = false){
   const isFirstLoad = !window.__appStarted;
   window.__appStarted = true;
   if(isFirstLoad){
-    setSplash('A verificar atualização…');
-    if(await checkForUpdateOnBoot()) return; // a página recarrega; a splash continua na versão nova
-    await esperarFirebase();                 // a sessão tem de estar resolvida antes de decidir o modo de sincronização
+    // Mostra já os dados guardados neste aparelho; a rede (atualização e Firebase) corre por trás.
+    setSplash('A carregar…');
+    await loadLocalOnlySettings();
+    await loadFromLocalStorage();
+    applyAllAppearance();
+    applySplashAppearance();
+    applyTabVisibility();
+    const ls0 = document.getElementById('loadingState'); if(ls0) ls0.style.display = 'none';
+    renderAll(); renderMonth();
+    hideSplash();
+    checkForUpdateOnBoot();   // recarrega sozinho só se houver versão nova
+    await esperarFirebase();
   }
-  setSplash('A carregar…');
+  setSplash('A sincronizar…');
 
   await loadLocalOnlySettings();
   if(window.fb && window.fb.user && !localSettings.fbHid){
@@ -2920,13 +2929,11 @@ async function loadAll(manual = false){
 
   if(fbActive()){
     await loadFromLocalStorage();
-    setSplash('A sincronizar…');
-    const primeiroSnap = new Promise(r => { window.__fbFirstSnap = r; });
-    if(localStorage.getItem('dueto:' + PENDING_PUSH_KEY)) await fbPushState(buildCloudPayload());
+    // Sincronização automática em segundo plano: a app abre já; a escuta atualiza os dados sozinha.
     fbStartListening();
-    if(isFirstLoad) await Promise.race([primeiroSnap, esperar(6000)]);
-    await reclamarPerfil();
-    setSyncStatus('synced');
+    setSyncStatus('syncing');
+    fbPushState();
+    reclamarPerfil();
   } else if(syncUrl){
     setSyncStatus('syncing');
     showLoadingState('Buscando dados da nuvem…');
@@ -2988,6 +2995,7 @@ async function loadAll(manual = false){
   renderMonth();
   
 
+  if(!window.__fbReady) setSyncStatus('nolink');
   if(!splashFechada){
     if(await consumePendingUpdateNotice()){
       setSplash(`✅ Atualizado para v${APP_VERSION}`);
@@ -3023,6 +3031,7 @@ async function safeSet(key, value){
     setSyncStatus('nolink');
     return null;
   }
+  return false;
 }
 
 function buildCloudPayload(){
@@ -3099,6 +3108,16 @@ window.addEventListener('pagehide', () => {
   }catch(e){}
 });
 
+// Botão de sincronização: uma sincronização rápida com o casal (não recarrega a app).
+async function manualSync(){
+  if(!(window.fb && window.fb.user && localSettings.fbHid)){
+    showToast(document.getElementById('syncStatus-home')?.textContent || 'Sem casal ligado');
+    return;
+  }
+  setSyncStatus('syncing');
+  const ok = await fbPushState();
+  showToast(ok ? 'Sincronizado' : 'Não foi possível sincronizar');
+}
 // Estado da sincronização: reflete a ligação à conta Google e ao casal (não a URL do Apps Script).
 function setSyncStatus(state){
   let label, dotClass;
@@ -4424,6 +4443,7 @@ async function fbPushState(){
     localStorage.removeItem('dueto:' + PENDING_PUSH_KEY);
     setSyncStatus('synced');
     logSyncEvent('success', 'Dados fundidos e enviados (Firebase, transação)', '');
+    return true;
   }catch(e){
     setSyncStatus('nolink');
     logSyncEvent('error', 'Firebase: ' + (e.message || e), '');
