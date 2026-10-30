@@ -2385,7 +2385,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.13.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.13.1';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 const SPLASH_MIN_MS = 1200;
 const splashInicio = Date.now();
@@ -3093,18 +3093,18 @@ function setSyncStatus(state){
   let label, dotClass;
   const u = window.fb && window.fb.user;
   if(!window.__fbReady){
-    label = 'a ligar ao Google'; dotClass = 'sync-dot off';
+    label = 'a ligar…'; dotClass = 'sync-dot off';
   } else if(!u){
-    label = 'sem conta Google'; dotClass = 'sync-dot off';
+    label = 'sem conta'; dotClass = 'sync-dot off';
   } else if(!localSettings.fbHid){
-    label = 'sem casal ligado'; dotClass = 'sync-dot off';
+    label = 'sem casal'; dotClass = 'sync-dot off';
   } else if(state === 'saving' || state === 'syncing'){
     label = state === 'syncing' ? 'sincronizando…' : 'salvando…';
     dotClass = 'sync-dot spinning';
   } else if(state === 'synced'){
-    label = 'sincronizado com Google'; dotClass = 'sync-dot';
+    label = 'sincronizado'; dotClass = 'sync-dot';
   } else {
-    label = 'sem ligação ao Google'; dotClass = 'sync-dot off';
+    label = 'sem ligação'; dotClass = 'sync-dot off';
   }
   SYNC_PILL_SCREENS.forEach(screen => {
     const dot = document.getElementById('syncDot-' + screen);
