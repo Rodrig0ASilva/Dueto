@@ -2146,6 +2146,13 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-r
       </div>
       <div class="switch" id="statsToggle" onclick="toggleStatsTab()"></div>
     </div>
+    <div class="switch-row">
+      <div class="switch-row-text">
+        <div class="switch-row-title">Aba Planejamento</div>
+        <div class="switch-row-sub">Planeie os ganhos e gastos dos próximos meses e veja quanto vai juntar até uma data.</div>
+      </div>
+      <div class="switch" id="planToggle" onclick="togglePlanTab()"></div>
+    </div>
 
     <!-- ZONA DE PERIGO -->
     <div class="danger-zone">
@@ -2156,7 +2163,20 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-r
 
   </div>
 
-    <!-- ===================== MODO DEV (aba própria) ===================== -->
+    <!-- ===================== PLANEJAMENTO ===================== -->
+  <div class="screen" id="screen-plan">
+    <div class="topbar">
+      <div class="screen-title-group">
+        <div class="screen-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4"/></svg>
+        </div>
+        <div class="screen-title">Planejamento</div>
+      </div>
+    </div>
+    <div id="planContent"></div>
+  </div>
+
+  <!-- ===================== MODO DEV (aba própria) ===================== -->
   <div class="screen" id="screen-dev">
     <div class="topbar">
       <div class="screen-title-group">
@@ -2330,6 +2350,10 @@ html { background: #F6EFE2; }
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 14l4-4 4 3 5-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
       Estatísticas
     </div>
+    <div class="tab hidden-tab" id="tabPlan" onclick="goPlan()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4M8 14h2M12 14h2M8 18h2"/></svg>
+      Plano
+    </div>
     <div class="tab" id="tabSettings" onclick="goSettings()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.9 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.6 1z"/></svg>
       Você
@@ -2385,7 +2409,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '4.14.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
+const APP_VERSION = '4.13.0';  // última atualização: aparência portada do modelo (gota, deslize, liquid glass, barra de intensidade)  // last updated: 2026-07-14 — changed: vaults/txns/loans/bills agora salvos como dicionário por ID (schemaVersion 2) em vez de array. Lê os dois formatos, então dados antigos continuam abrindo. Nenhuma tela mudou.
 
 const SPLASH_MIN_MS = 400;
 const splashInicio = Date.now();
@@ -3040,7 +3064,7 @@ async function safeSet(key, value){
 }
 
 function buildCloudPayload(){
-  const sharedAppSettings = {};
+  const sharedAppSettings = { planGoal: appSettings.planGoal || null };
   return {
     schemaVersion: SCHEMA_VERSION,
     vaults: arrToDict(vaults), txns: arrToDict(txns), loans: arrToDict(loans), bills: arrToDict(bills),
@@ -3150,7 +3174,7 @@ function setSyncStatus(state){
 }
 
 // Mesma ordem em que as abas aparecem na barra (o arrasto e a direção do deslize dependem disso)
-const TABS = ['tabMonth','tabFeira','tabHome','tabLoans','tabStats','tabSettings','tabDev'];
+const TABS = ['tabMonth','tabFeira','tabHome','tabLoans','tabStats','tabPlan','tabSettings','tabDev'];
 
 function activateTab(id){
   TABS.forEach(t => document.getElementById(t).classList.toggle('active', t === id));
@@ -3369,7 +3393,7 @@ const glassObserver = new MutationObserver(muts => {
 glassObserver.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ['class'] });
 
 // Deslizar na horizontal sobre o conteúdo: aba seguinte ou anterior.
-const SCREEN_ORDER = ['screen-month','screen-feira','screen-home','screen-loans','screen-stats','screen-settings','screen-dev'];
+const SCREEN_ORDER = ['screen-month','screen-feira','screen-home','screen-loans','screen-stats','screen-plan','screen-settings','screen-dev'];
 function showScreen(id){
   const prev = document.querySelector('.screen.active');
   const from = prev ? SCREEN_ORDER.indexOf(prev.id) : -1;
@@ -3440,6 +3464,101 @@ function goLoans(){
   showScreen('screen-loans'); activateTab('tabLoans');
   renderLoans();
 }
+// ---------- Planejamento: ganhos e gastos previstos por mês + meta até uma data ----------
+async function togglePlanTab(){
+  localSettings.showPlan = !localSettings.showPlan;
+  await persistLocalSettings();
+  applyTabVisibility();
+  renderSettings();
+}
+function goPlan(){
+  if(!localSettings.showPlan) return;
+  showScreen('screen-plan'); activateTab('tabPlan');
+  renderPlan();
+}
+function totalGuardadoCofres(){
+  return vaults.reduce((s, v) => s + Math.max(0, v.balance || 0), 0);
+}
+function planDoMes(k){
+  const p = monthData[k] && monthData[k].plan;
+  return { income: (p && p.income) || 0, expense: (p && p.expense) || 0 };
+}
+// Meses desde o mês seguinte ao atual até à data da meta (inclusive).
+function projecaoPlano(){
+  const g = appSettings.planGoal; if(!g || !g.date) return null;
+  const hoje = defaultReferenceMonthKey();
+  const meses = [];
+  for(let k = nextMonthKey(hoje); k <= g.date && meses.length < 240; k = nextMonthKey(k)) meses.push(k);
+  const poupanca = meses.reduce((s, k) => { const p = planDoMes(k); return s + p.income - p.expense; }, 0);
+  const guardado = totalGuardadoCofres();
+  return { meses, poupanca, guardado, previsto: guardado + poupanca };
+}
+async function salvarMetaPlano(){
+  const d = document.getElementById('planDate').value;
+  const valor = parseFloat(document.getElementById('planMeta').value) || 0;
+  if(!d){ showToast('Escolha o mês da meta'); return; }
+  appSettings.planGoal = { date: d, valor };
+  await persistAppSettings();
+  renderPlan();
+  showToast('Meta guardada');
+}
+async function setPlanValor(k, campo, valor){
+  const e = ensureMonthEntry(k);
+  e.plan = e.plan || { income: 0, expense: 0 };
+  e.plan[campo] = Math.max(0, parseFloat(valor) || 0);
+  await persistMonthData();
+  renderPlan();
+}
+function renderPlan(){
+  const box = document.getElementById('planContent'); if(!box) return;
+  const g = appSettings.planGoal || {};
+  const hoje = defaultReferenceMonthKey();
+  const proj = projecaoPlano();
+  const fim = g.date || addMonthsToKey(hoje, 11);
+  const guardado = totalGuardadoCofres();
+  const meta = g.valor || 0;
+  const falta = meta > 0 ? Math.max(0, meta - (proj ? proj.previsto : guardado)) : null;
+  const progresso = meta > 0 ? Math.min(100, Math.round((guardado / meta) * 100)) : null;
+
+  const linhas = [];
+  for(let k = hoje; k <= fim && linhas.length < 240; k = nextMonthKey(k)) linhas.push(k);
+  const meses = linhas.map(k => {
+    const p = planDoMes(k);
+    const sobra = p.income - p.expense;
+    return `<div class="chart-box" style="margin-bottom:10px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-weight:700;text-transform:capitalize;">${monthLabelFor(k)}${k === hoje ? ' · atual' : ''}</div>
+        <div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${sobra >= 0 ? 'var(--vault-light)' : 'var(--terracotta)'};">${fmt(sobra)}</div>
+      </div>
+      <div class="stat-cards" style="margin-bottom:0;">
+        <div class="field" style="margin:0;"><label>Ganhos previstos</label><div class="field-money"><input type="number" inputmode="decimal" value="${p.income || ''}" placeholder="0" onchange="setPlanValor('${k}','income',this.value)" /></div></div>
+        <div class="field" style="margin:0;"><label>Gastos previstos</label><div class="field-money"><input type="number" inputmode="decimal" value="${p.expense || ''}" placeholder="0" onchange="setPlanValor('${k}','expense',this.value)" /></div></div>
+      </div></div>`;
+  }).join('');
+
+  box.innerHTML = `
+    <div class="chart-box" style="margin-bottom:14px;">
+      <div class="chart-box-title">Meta</div>
+      <div class="chart-box-sub">Até quando quer juntar, e quanto</div>
+      <div class="stat-cards" style="margin-bottom:8px;">
+        <div class="field" style="margin:0;"><label>Mês da meta</label><input type="month" id="planDate" value="${g.date || ''}" /></div>
+        <div class="field" style="margin:0;"><label>Valor (opcional)</label><div class="field-money"><input type="number" id="planMeta" inputmode="decimal" value="${meta || ''}" placeholder="0" /></div></div>
+      </div>
+      <button class="btn btn-primary" onclick="salvarMetaPlano()">Guardar meta</button>
+    </div>
+
+    <div class="stat-cards">
+      <div class="stat-card"><div class="stat-card-label">Guardado realmente</div><div class="stat-card-value">${fmt(guardado)}</div><div class="section-sub" style="font-size:11px;margin-top:4px;">soma dos cofres hoje</div></div>
+      <div class="stat-card"><div class="stat-card-label">Previsto até ${g.date ? monthLabelFor(g.date) : '—'}</div><div class="stat-card-value">${proj ? fmt(proj.previsto) : '—'}</div><div class="section-sub" style="font-size:11px;margin-top:4px;">${proj ? 'guardado + sobra prevista' : 'defina a meta'}</div></div>
+      ${meta > 0 ? `<div class="stat-card"><div class="stat-card-label">Progresso</div><div class="stat-card-value">${progresso}%</div></div>
+      <div class="stat-card"><div class="stat-card-label">Falta para a meta</div><div class="stat-card-value">${fmt(falta)}</div></div>` : ''}
+    </div>
+
+    <div class="section-head"><div class="section-title">Mês a mês</div></div>
+    <div class="section-sub" style="margin:0 0 12px;">Ganhos e gastos previstos. A sobra de cada mês soma-se ao previsto.</div>
+    ${meses || '<div class="empty-note">Defina a meta para ver os meses.</div>'}
+  `;
+}
 function applyTabVisibility(){
   const show = !!(localSettings && localSettings.showStats);
   const tab = document.getElementById('tabStats');
@@ -3454,6 +3573,9 @@ function applyTabVisibility(){
   if(!showFeira && document.getElementById('screen-feira').classList.contains('active')){
     goMonth();
   }
+  const planTab = document.getElementById('tabPlan');
+  if(planTab) planTab.classList.toggle('hidden-tab', !(localSettings && localSettings.showPlan));
+  if(!(localSettings && localSettings.showPlan) && document.getElementById('screen-plan').classList.contains('active')) goSettings();
   const devTab = document.getElementById('tabDev');
   if(devTab) devTab.classList.toggle('hidden-tab', !(localSettings && localSettings.devMode));
   if(!(localSettings && localSettings.devMode) && document.getElementById('screen-dev').classList.contains('active')) goSettings();
@@ -4132,6 +4254,7 @@ function testarIndex2(){
 }
 function renderSettings(){
   renderMembros();
+  const pt = document.getElementById('planToggle'); if(pt) pt.className = 'switch' + (localSettings.showPlan ? ' on' : '');
   const dRow = document.getElementById('devSwitchRow');
   if(dRow) dRow.style.display = (localSettings && (localSettings.devUnlocked || localSettings.devMode)) ? '' : 'none';
   atualizarBotaoVersao();
