@@ -3482,8 +3482,8 @@ function planDoMes(k){
 }
 // Meses desde o mês seguinte ao atual até à data da meta (inclusive).
 async function salvarMetaPlano(){
-  const inicio = document.getElementById('planInicio').value;
-  const fim = document.getElementById('planFim').value;
+  const inicio = lerSeletorMes('planInicio');
+  const fim = lerSeletorMes('planFim');
   const valor = parseFloat(document.getElementById('planMeta').value) || 0;
   if(!inicio || !fim){ showToast('Escolha o início e o fim da meta'); return; }
   if(fim < inicio){ showToast('O fim tem de ser depois do início'); return; }
@@ -3498,6 +3498,21 @@ async function setPlanValor(k, campo, valor){
   e.plan[campo] = Math.max(0, parseFloat(valor) || 0);
   await persistMonthData();
   renderPlan();
+}
+// Seletor de mês (menu de mês + menu de ano). Substitui o input type="month", que não funciona bem no Safari.
+function seletorMes(id, valor){
+  const [ay, am] = (valor || defaultReferenceMonthKey()).split('-').map(Number);
+  const nomes = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const anoAtual = new Date().getFullYear();
+  let anos = '';
+  for(let y = anoAtual - 1; y <= anoAtual + 6; y++) anos += `<option value="${y}" ${y === ay ? 'selected' : ''}>${y}</option>`;
+  const meses = nomes.map((n, i) => `<option value="${i + 1}" ${i + 1 === am ? 'selected' : ''}>${n}</option>`).join('');
+  return `<div style="display:flex;gap:6px;"><select id="${id}M" style="flex:1;">${meses}</select><select id="${id}A" style="flex:1;">${anos}</select></div>`;
+}
+function lerSeletorMes(id){
+  const m = document.getElementById(id + 'M').value;
+  const a = document.getElementById(id + 'A').value;
+  return a + '-' + String(m).padStart(2, '0');
 }
 // Meta: início e fim escolhidos por si. Os valores de cada mês são introduzidos à mão.
 function planMetaAtual(){
@@ -3534,6 +3549,7 @@ function renderPlan(){
   }).join('');
 
   const falta = m.valor > 0 ? m.valor - acumulado : null;
+  const avisoPeriodo = m.fim < m.inicio ? '<div class="section-sub" style="color:var(--terracotta);margin-bottom:10px;">O fim da meta tem de ser depois do início.</div>' : '';
   const resumo = m.valor > 0
     ? (falta > 0 ? fmt(falta) : 'Meta atingida')
     : '—';
@@ -3543,8 +3559,8 @@ function renderPlan(){
       <div class="chart-box-title">Meta</div>
       <div class="chart-box-sub">Escolha quando começa e quando termina, e o valor que quer juntar (opcional)</div>
       <div class="stat-cards" style="margin-bottom:8px;">
-        <div class="field" style="margin:0;"><label>Início</label><input type="month" id="planInicio" value="${m.inicio}" /></div>
-        <div class="field" style="margin:0;"><label>Fim</label><input type="month" id="planFim" value="${m.fim}" /></div>
+        <div class="field" style="margin:0;"><label>Início</label>${seletorMes('planInicio', m.inicio)}</div>
+        <div class="field" style="margin:0;"><label>Fim</label>${seletorMes('planFim', m.fim)}</div>
       </div>
       <div class="field" style="margin:0 0 8px;"><label>Valor a juntar (opcional)</label><div class="field-money"><input type="number" id="planMeta" inputmode="decimal" value="${m.valor || ''}" placeholder="0" /></div></div>
       <button class="btn btn-primary" onclick="salvarMetaPlano()">Guardar meta</button>
@@ -3557,6 +3573,7 @@ function renderPlan(){
       <div class="stat-card"><div class="stat-card-label">${m.valor > 0 ? 'Falta para a meta' : 'Meta'}</div><div class="stat-card-value">${resumo}</div></div>
     </div>
 
+    ${avisoPeriodo}
     <div class="section-head"><div class="section-title">Mês a mês</div></div>
     <div class="section-sub" style="margin:0 0 12px;">Digite os ganhos e gastos previstos de cada mês. A sobra acumulada começa no mês de início.</div>
     ${linhas || '<div class="empty-note">Escolha o início e o fim da meta para ver os meses.</div>'}
