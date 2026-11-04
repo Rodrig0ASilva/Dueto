@@ -4853,10 +4853,20 @@ function devContarDadosAntigos(){
   };
 }
 // Quem faz a ação é sempre o membro logado (sem seletor entre Membro 1 e Membro 2).
+// Quem faz a ação. O criador do casal (membro A) pode escolher a pessoa; os outros veem só o próprio nome.
 function quemLogadoHtml(id){
   const k = meuPerfilKey() || 'a';
-  const nome = names[k] || (k === 'a' ? 'Membro 1' : 'Membro 2');
-  return `<input type="hidden" id="${id}" value="${k}" /><div class="section-sub" style="padding:10px 2px;font-weight:700;">${escapeHtml(nome)} (você)</div>`;
+  const nomeA = names.a || 'Membro 1';
+  const nomeB = names.b || 'Membro 2';
+  const souAdmin = !!meuUid() && names.ownerA === meuUid();
+  if(!souAdmin){
+    const nome = k === 'a' ? nomeA : nomeB;
+    return `<input type="hidden" id="${id}" value="${k}" /><div class="section-sub" style="padding:10px 2px;font-weight:700;">${escapeHtml(nome)} (você)</div>`;
+  }
+  return `<select id="${id}" style="width:100%;">
+    <option value="a" ${k === 'a' ? 'selected' : ''}>${escapeHtml(nomeA)}${k === 'a' ? ' (você)' : ''}</option>
+    <option value="b" ${k === 'b' ? 'selected' : ''}>${escapeHtml(nomeB)}${k === 'b' ? ' (você)' : ''}</option>
+  </select>`;
 }
 function devOpenLinkLegacy(){
   if(!localSettings.devMode){ showToast('Ative o Modo Dev primeiro'); return; }
