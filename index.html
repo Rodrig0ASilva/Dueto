@@ -2198,6 +2198,7 @@ body.bg-ink-light:not(.dark) #app :is(.stat-card,.chart-box,.loans-box,.income-r
         <div class="menu-item" onclick="devOpenEditBills()"><span class="ic">🧾</span><div><div class="menu-item-title">Editar contas</div><div class="menu-item-sub">Nome, valor e cofre destino</div></div></div>
         <div class="menu-item" onclick="devExportData()"><span class="ic">📤</span><div><div class="menu-item-title">Exportar dados (JSON)</div><div class="menu-item-sub">Cópia completa dos dados</div></div></div>
         <div class="menu-item" onclick="devImportData()"><span class="ic">📥</span><div><div class="menu-item-title">Importar dados (JSON)</div><div class="menu-item-sub">Substitui os dados atuais</div></div></div>
+        <div class="menu-item" onclick="devOpenRecalcSaldos()"><span class="ic">🧮</span><div><div class="menu-item-title">Recalcular saldos dos cofres</div><div class="menu-item-sub">Calcula pelos movimentos e mostra a diferença antes de aplicar</div></div></div>
         <div class="menu-item" onclick="devOpenLinkLegacy()"><span class="ic">🔗</span><div><div class="menu-item-title">Vincular dados antigos ao meu usuário</div><div class="menu-item-sub">Passa registos pessoais e órfãos para o casal e para o seu perfil</div></div></div>
         <div class="menu-item" onclick="devCheckForUpdate()"><span class="ic">🔄</span><div><div class="menu-item-title">Verificar atualização</div><div class="menu-item-sub">Compara com a versão publicada</div></div></div>
       </div>
@@ -4048,6 +4049,7 @@ function openVault(id){
 function whoLabel(w){ return w === 'a' ? (names.a||'Membro 1') : (names.b||'Membro 2'); }
 
 function renderAll(){
+  vaults.sort((a, b) => ((a.createdAt || 0) - (b.createdAt || 0)) || String(a.id).localeCompare(String(b.id)));
   const scopedVaults = vaults;
   const totalGuardado = scopedVaults.filter(v => !isTemporaryVault(v)).reduce((s,v)=> s + Math.max(v.balance,0), 0);
   const totalDevido   = loans.reduce((s,l)=> s + l.remaining, 0);
@@ -4840,6 +4842,46 @@ async function toggleDevMode(){
   if(localSettings.devMode) goDev(); else goSettings();
   renderSyncLog();
   showToast(localSettings.devMode ? '🛠️ Modo Dev ativado' : 'Modo Dev desativado');
+}
+// ---------- Recalcular saldos a partir dos movimentos (Modo Dev) ----------
+// Pagamentos para a conta principal não entram no cofre (o dinheiro não fica no cofre).
+function movimentoEntraNoCofre(t){
+  return !(t.type === 'pagamento' && /conta principal/i.test(t.note || ''));
+}
+function saldoPelosMovimentos(v){
+  return round2(txns.filter(t => t.vaultId === v.id && movimentoEntraNoCofre(t)).reduce((s, t) => {
+    if(t.type === 'deposito' || t.type === 'pagamento') return s + (t.amount || 0);
+    if(t.type === 'retirada' || t.type === 'emprestimo' || t.type === 'feira') return s - (t.amount || 0);
+    return s;
+  }, 0));
+}
+function devOpenRecalcSaldos(){
+  if(!localSettings.devMode){ showToast('Ative o Modo Dev primeiro'); return; }
+  const linhas = vaults.filter(v => !isTemporaryVault(v)).map(v => {
+    const calc = saldoPelosMovimentos(v);
+    const diff = round2(calc - round2(v.balance || 0));
+    const cor = diff === 0 ? 'var(--text-muted)' : 'var(--terracotta)';
+    const txt = diff === 0 ? 'igual' : (diff > 0 ? '+' : '') + fmt(diff);
+    return `<div class="menu-item" style="cursor:default;"><span class="ic">${escapeHtml(v.emoji || '🏦')}</span><div style="flex:1;min-width:0;"><div class="menu-item-title">${escapeHtml(v.name)}</div><div class="menu-item-sub">atual ${fmt(v.balance || 0)} · pelos movimentos ${fmt(calc)}</div></div><div style="font-family:'JetBrains Mono',monospace;font-weight:700;color:${cor};">${txt}</div></div>`;
+  }).join('');
+  openSheet(`${sheetHeader('Recalcular saldos')}
+    <div class="sheet-sub">Calcula o saldo de cada cofre a partir dos movimentos registados. Confira as diferenças antes de aplicar. Os cofres da Feira não são alterados.</div>
+    <div class="menu-list">${linhas || '<div class="empty-note">Sem cofres.</div>'}</div>
+    <button class="btn btn-primary" onclick="devAplicarSaldos()">Aplicar saldos calculados</button>
+    <button class="btn btn-ghost" onclick="closeSheet()">Cancelar</button>`);
+}
+async function devAplicarSaldos(){
+  if(!localSettings.devMode) return;
+  let n = 0;
+  vaults.forEach(v => {
+    if(isTemporaryVault(v)) return;
+    const calc = saldoPelosMovimentos(v);
+    if(calc !== round2(v.balance || 0)){ v.balance = calc; n++; }
+  });
+  await persistVaults();
+  closeSheet();
+  renderAll();
+  showToast(n ? `${n} saldo(s) corrigido(s)` : 'Os saldos já estavam certos');
 }
 // ---------- Dados antigos: contar e vincular ao utilizador (Modo Dev) ----------
 function devContarDadosAntigos(){
