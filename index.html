@@ -2731,6 +2731,7 @@ async function loadFromLocalStorage(){
   try{ const b  = await window.storage.get('bills');     bills     = b  ? dictToArr(JSON.parse(b.value))  : []; }catch(e){}
   try{ const md = await window.storage.get('monthData'); monthData = md ? JSON.parse(md.value) : {}; }catch(e){}
   try{ const st = await window.storage.get('appSettings'); appSettings = st ? JSON.parse(st.value) : {}; }catch(e){ appSettings = {}; }
+  recalcVaultBalances();
 }
 
 // Fusão a 3 vias com lápides (ver DOCUMENTACAO: sincronização)
@@ -2836,6 +2837,7 @@ function applyCloudData(data){
   names     = (data.names && typeof data.names === 'object') ? data.names : { a:'', b:'' };
   const cloudApp = (data.appSettings && typeof data.appSettings === 'object') ? data.appSettings : {};
   appSettings = { ...cloudApp };
+  recalcVaultBalances();
 }
 
 async function persistLocalOnlySilently(){
@@ -4049,6 +4051,7 @@ function openVault(id){
 function whoLabel(w){ return w === 'a' ? (names.a||'Membro 1') : (names.b||'Membro 2'); }
 
 function renderAll(){
+  recalcVaultBalances();
   vaults.sort((a, b) => ((a.createdAt || 0) - (b.createdAt || 0)) || String(a.id).localeCompare(String(b.id)));
   const scopedVaults = vaults;
   const totalGuardado = scopedVaults.filter(v => !isTemporaryVault(v)).reduce((s,v)=> s + Math.max(v.balance,0), 0);
@@ -4848,6 +4851,12 @@ async function toggleDevMode(){
 function movimentoEntraNoCofre(t){
   return !(t.type === 'pagamento' && /conta principal/i.test(t.note || ''));
 }
+// Fonte de verdade do saldo: os movimentos. O campo v.balance é só uma cópia,
+// recalculada sempre que os dados são carregados, fundidos ou mostrados.
+// Assim os saldos deixam de divergir entre aparelhos.
+function recalcVaultBalances(){
+  vaults.forEach(v => { if(!isTemporaryVault(v)) v.balance = saldoPelosMovimentos(v); });
+}
 function saldoPelosMovimentos(v){
   return round2(txns.filter(t => t.vaultId === v.id && movimentoEntraNoCofre(t)).reduce((s, t) => {
     if(t.type === 'deposito' || t.type === 'pagamento') return s + (t.amount || 0);
@@ -4961,11 +4970,20 @@ function devOpenEditVaults(){
   `);
 }
 async function devSaveVaultBalances(){
+  const now = Date.now();
   document.querySelectorAll('.dev-vault-input').forEach(inp => {
     const v = vaults.find(x=>x.id===inp.dataset.id);
-    if(v) v.balance = parseFloat(inp.value) || 0;
+    if(!v || isTemporaryVault(v)) return;
+    const desejado = round2(parseFloat(inp.value) || 0);
+    const diff = round2(desejado - saldoPelosMovimentos(v));
+    if(diff === 0) return;
+    // O ajuste fica registado como movimento, para não se perder na sincronização.
+    txns.push({ id: uid(), vaultId: v.id, type: diff > 0 ? 'deposito' : 'retirada', amount: Math.abs(diff), note: 'Ajuste manual', ts: now });
   });
-  await persistVaults(); closeSheet(); showToast('Saldos atualizados'); renderAll();
+  await persistTxns();
+  recalcVaultBalances();
+  await persistVaults();
+  closeSheet(); showToast('Saldos ajustados'); renderAll();
 }
 function devOpenDeleteTxns(){
   if(!localSettings.devMode){ showToast('Ative o Modo Dev primeiro'); return; }
@@ -5122,6 +5140,7 @@ function devImportData(){
       if(data.monthData)             monthData = data.monthData;
       if(data.names)                 names     = data.names;
       if(data.appSettings)           appSettings = { ...data.appSettings };
+      recalcVaultBalances();
       await persistVaults(); await persistTxns(); await persistLoans(); await persistBills(); await persistMonthData(); await persistNames(); await persistAppSettings();
       if(fbActive() && confirm('Também substituir os dados do casal na nuvem por este ficheiro?\n\nA outra pessoa passa a ver exatamente este conteúdo, sem fusão.')){
         try{
