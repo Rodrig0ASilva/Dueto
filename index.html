@@ -2428,7 +2428,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '1.0.2';  // última atualização: botão para instalar no ecrã inicial (Android e iPhone), com passos e ícones PNG no manifest
+const APP_VERSION = '1.0.3';  // última atualização: botão para instalar no ecrã inicial (Android e iPhone), com passos e ícones PNG no manifest
 
 const SPLASH_MIN_MS = 400;
 const splashInicio = Date.now();
@@ -7194,14 +7194,26 @@ function buildForecastResult(){
     return;
   }
 
+  const scopedVaults = vaults;
   const currentEntry  = ensureMonthEntry(currentMonthKey);
-  const visibleBills  = bills.filter(b => (!b.createdMonthKey || b.createdMonthKey <= currentMonthKey) && isBillDueThisMonth(b));
-  const totalBillsAmt = visibleBills.reduce((s,b) => s + billAmount(currentEntry, b), 0);
+  const now = new Date();
+  // Índice 0 = mês seguinte ao atual. Cada mês da previsão usa as contas e empréstimos que lhe são devidos.
+  const proximoMes = monthKeyFor(new Date(now.getFullYear(), now.getMonth()+1, 1));
+  const idxMes = k => { const [y,m] = k.split('-').map(Number); return y*12 + (m-1); };
+  const chaveMes = i => monthKeyFor(new Date(now.getFullYear(), now.getMonth()+1+i, 1));
+  const contaAplicaMes = (b, k) =>
+    (!b.createdMonthKey || b.createdMonthKey <= k) &&
+    (!b.dueMonthKey || b.dueMonthKey === k) &&
+    (!b.endMonthKey || k <= b.endMonthKey);
+  const contasDoMes = k => bills.filter(b => contaAplicaMes(b, k)).reduce((s,b) => s + billAmount(currentEntry, b), 0);
+  const totalBillsAmt = contasDoMes(proximoMes);
 
   const openLoans = loans.filter(l => l.remaining > 0);
   const loanSchedule = openLoans.map(l => {
     const remain = l.installments - l.paidInstallments;
-    return { ...l, remainMonths: remain, installAmt: remain > 0 ? l.remaining / remain : 0 };
+    // Empréstimo começa no mês indicado (ou no próximo, se já começou). Parcelas: uma por mês a partir daí.
+    const startIdx = Math.max(0, idxMes(l.startMonthKey || proximoMes) - idxMes(proximoMes));
+    return { ...l, remainMonths: remain, startIdx, installAmt: remain > 0 ? l.remaining / remain : 0 };
   });
 
   const totalVaultAlloc = scopedVaults.filter(v=>!isTemporaryVault(v))
@@ -7211,7 +7223,6 @@ function buildForecastResult(){
 
   const months = p.months || 6;
 
-  const now = new Date();
   const monthLabels = [];
   for(let i=1; i<=months; i++){
     const d = new Date(now.getFullYear(), now.getMonth()+i, 1);
@@ -7222,9 +7233,10 @@ function buildForecastResult(){
   scopedVaults.filter(v=>!isTemporaryVault(v)).forEach(v => { vaultBalances[v.id] = v.balance; });
 
   const monthlyData = monthLabels.map((lbl, mi) => {
-    const activeLoans = loanSchedule.filter(l => mi < l.remainMonths);
+    const activeLoans = loanSchedule.filter(l => mi >= l.startIdx && mi < l.startIdx + l.remainMonths);
     const loanCost    = activeLoans.reduce((s,l)=>s+l.installAmt, 0);
-    const totalOut    = totalBillsAmt + loanCost + totalVaultAlloc + extraTotal;
+    const billsMes    = contasDoMes(chaveMes(mi));
+    const totalOut    = billsMes + loanCost + totalVaultAlloc + extraTotal;
     const free        = totalIncome - totalOut;
 
     const snap = {};
@@ -7308,7 +7320,8 @@ function buildForecastResult(){
     <div style="border:1.5px solid rgba(180,100,60,.3);border-radius:var(--r-xl);padding:16px 18px;margin-bottom:14px;">
       <div style="font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--terracotta);margin-bottom:12px;">🤝 Quitação dos empréstimos</div>
       ${loanPayoffs.map(l => {
-        const payoffMonth = l.remainMonths <= months ? monthLabels[l.remainMonths-1]?.short : null;
+        const payoffIdx = l.startIdx + l.remainMonths - 1;
+        const payoffMonth = (payoffIdx >= 0 && payoffIdx < months) ? monthLabels[payoffIdx]?.short : null;
         const pct = Math.round(((l.installments - l.remainMonths) / l.installments) * 100);
         return `
         <div style="margin-bottom:12px;padding-bottom:12px;border-bottom:1px solid rgba(180,100,60,.15);">
