@@ -2428,7 +2428,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '1.0.0';  // última atualização: botão para instalar no ecrã inicial (Android e iPhone), com passos e ícones PNG no manifest
+const APP_VERSION = '1.0.2';  // última atualização: botão para instalar no ecrã inicial (Android e iPhone), com passos e ícones PNG no manifest
 
 const SPLASH_MIN_MS = 400;
 const splashInicio = Date.now();
@@ -4140,7 +4140,11 @@ function abrirComoInstalar(tab){
 function renderAll(){
   renderInstalarBanner();
   recalcVaultBalances();
-  vaults.sort((a, b) => ((a.createdAt || 0) - (b.createdAt || 0)) || String(a.id).localeCompare(String(b.id)));
+  // Ordem fixa pela data em que foi criado (nunca muda sozinha ao sincronizar).
+  const porCriacao = (a, b) => ((a.createdAt || a.ts || 0) - (b.createdAt || b.ts || 0)) || String(a.id).localeCompare(String(b.id));
+  vaults.sort(porCriacao);
+  loans.sort(porCriacao);
+  bills.sort(porCriacao);
   const scopedVaults = vaults;
   const totalGuardado = scopedVaults.filter(v => !isTemporaryVault(v)).reduce((s,v)=> s + Math.max(v.balance,0), 0);
   const totalDevido   = loans.reduce((s,l)=> s + l.remaining, 0);
@@ -4153,7 +4157,7 @@ function renderAll(){
   if(scopedVaults.length === 0){
     list.innerHTML = `<div class="empty-note">Nenhum cofre ainda. Crie o primeiro.</div>`;
   } else {
-    list.innerHTML = scopedVaults.map(v => {
+    list.innerHTML = [...scopedVaults].sort((a, b) => ((b.balance || 0) - (a.balance || 0)) || ((a.createdAt || 0) - (b.createdAt || 0)) || String(a.id).localeCompare(String(b.id))).map(v => {
       const vaultLoans    = loans.filter(l => l.vaultId === v.id && l.remaining > 0);
       const hasLoans      = vaultLoans.length > 0;
       const owedFromVault = vaultLoans.reduce((s,l)=>s+l.remaining,0);
@@ -5662,7 +5666,7 @@ async function confirmVaultLoan(){
   const due = nextMonthKey(monthKeyFor(new Date()));
   bills.push({
     id: uid(), name: `Devolver empréstimo — ${escapeHtml(dest.name)} → ${escapeHtml(v.name)}`,
-    defaultAmount: amount, kind: 'variavel', createdMonthKey: currentMonthKey, dueMonthKey: due,
+    defaultAmount: amount, kind: 'variavel', createdAt: Date.now(), createdMonthKey: currentMonthKey, dueMonthKey: due,
     payFromVaultId: dest.id, payToVaultId: v.id
   });
   await persistBills();
@@ -6327,9 +6331,17 @@ function renderSourceBalances(entry){
   }).join('');
 }
 
+// Ordem fixa das contas: pela data de criação; em empate, pelo nome e pelo id.
+// Não depende da ordem em que os dados chegam da nuvem, por isso não muda de lugar.
+function contasOrdenadas(){
+  return [...bills].sort((a, b) =>
+    ((a.createdAt || 0) - (b.createdAt || 0)) ||
+    String(a.name || '').localeCompare(String(b.name || ''), 'pt') ||
+    String(a.id).localeCompare(String(b.id)));
+}
 function renderBills(entry){
   const devMode     = !!(localSettings && localSettings.devMode);
-  const allBills    = bills.filter(b => (!b.createdMonthKey || b.createdMonthKey <= currentMonthKey) && isBillDueThisMonth(b));
+  const allBills    = contasOrdenadas().filter(b => (!b.createdMonthKey || b.createdMonthKey <= currentMonthKey) && isBillDueThisMonth(b));
   const visibleBills = allBills.filter(b => !entry.hiddenBills[b.id]);
   const hiddenBills  = allBills.filter(b => !!entry.hiddenBills[b.id]);
 
@@ -6693,7 +6705,7 @@ async function createBill(){
     if(!n || n < 1){ showToast('Diga por quantos meses'); return; }
     endMonthKey = addMonthsToKey(currentMonthKey, n - 1);
   }
-  bills.push({ id: uid(), name, defaultAmount: amount, kind, targetVaultId, createdMonthKey: currentMonthKey, endMonthKey });
+  bills.push({ id: uid(), name, defaultAmount: amount, kind, targetVaultId, createdAt: Date.now(), createdMonthKey: currentMonthKey, endMonthKey });
   await persistBills(); closeSheet(); showToast('Adicionado com sucesso'); renderMonth();
 }
 
