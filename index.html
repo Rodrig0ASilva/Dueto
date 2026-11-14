@@ -2428,7 +2428,7 @@ if (!window.storage) {
   };
 }
 
-const APP_VERSION = '1.0.3';  // última atualização: botão para instalar no ecrã inicial (Android e iPhone), com passos e ícones PNG no manifest
+const APP_VERSION = '1.0.4';  // última atualização: botão para instalar no ecrã inicial (Android e iPhone), com passos e ícones PNG no manifest
 
 const SPLASH_MIN_MS = 400;
 const splashInicio = Date.now();
@@ -6957,7 +6957,8 @@ function renderForecast(){
   const avgB = Math.round(((lastIncome.b?.fisico||0)+(lastIncome.b?.vale||0)+(lastIncome.b?.conta||0)));
 
   const currentEntry = ensureMonthEntry(currentMonthKey);
-  const visibleBills  = bills.filter(b => (!b.createdMonthKey || b.createdMonthKey <= currentMonthKey) && isBillDueThisMonth(b));
+  // Devoluções entre cofres (payFromVaultId) não são despesas: o dinheiro continua na casa.
+  const visibleBills  = bills.filter(b => !b.payFromVaultId && (!b.createdMonthKey || b.createdMonthKey <= currentMonthKey) && isBillDueThisMonth(b));
   const totalBillsAmt = visibleBills.reduce((s,b) => s + billAmount(currentEntry, b), 0);
 
   const openLoans = loans.filter(l => l.remaining > 0);
@@ -7205,7 +7206,7 @@ function buildForecastResult(){
     (!b.createdMonthKey || b.createdMonthKey <= k) &&
     (!b.dueMonthKey || b.dueMonthKey === k) &&
     (!b.endMonthKey || k <= b.endMonthKey);
-  const contasDoMes = k => bills.filter(b => contaAplicaMes(b, k)).reduce((s,b) => s + billAmount(currentEntry, b), 0);
+  const contasDoMes = k => bills.filter(b => !b.payFromVaultId && contaAplicaMes(b, k)).reduce((s,b) => s + billAmount(currentEntry, b), 0);
   const totalBillsAmt = contasDoMes(proximoMes);
 
   const openLoans = loans.filter(l => l.remaining > 0);
